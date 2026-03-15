@@ -2,579 +2,780 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
-const COLORS = {
-  cream: "#FAF8F5",
-  terracotta: "#E07A5F",
-  terracottaLight: "rgba(224, 122, 95, 0.08)",
-  terracottaBorder: "rgba(224, 122, 95, 0.3)",
-  charcoal: "#2C2C2C",
-  charcoalLight: "rgba(44, 44, 44, 0.5)",
-  charcoalLighter: "rgba(44, 44, 44, 0.15)",
-  white: "#FFFFFF",
-};
+type Answer = string | number | null;
 
-type QuestionType = "number" | "choice";
-
-interface Insight {
-  text: string;
+interface QuizState {
+  currentQuestion: number;
+  answers: Answer[];
+  direction: "forward" | "backward";
+  showInsight: boolean;
 }
 
-interface Question {
-  id: number;
-  text: string;
-  type: QuestionType;
-  placeholder?: string;
-  min?: number;
-  max?: number;
-  options?: string[];
-  insight?: Insight;
-}
-
-const questions: Question[] = [
-  {
-    id: 1,
-    text: "How old are you?",
-    type: "number",
-    placeholder: "Enter your age",
-    min: 16,
-    max: 60,
-  },
-  {
-    id: 2,
-    text: "What's your current relationship status?",
-    type: "choice",
-    options: [
-      "Single",
-      "Casually dating",
-      "In a serious relationship",
-      "Married or engaged",
-    ],
-    insight: {
-      text: "Among women in serious relationships, 62% discuss family planning within the first 2 years.",
-    },
-  },
-  {
-    id: 3,
-    text: "How long have you been with your current partner?",
-    type: "choice",
-    options: [
-      "Less than 6 months",
-      "6 months to 1 year",
-      "1–2 years",
-      "3–5 years",
-      "More than 5 years",
-      "Not currently with someone",
-    ],
-  },
-  {
-    id: 4,
-    text: "Have you and your partner discussed having children?",
-    type: "choice",
-    options: [
-      "Not at all",
-      "Mentioned briefly",
-      "Had a few conversations",
-      "Discussed in detail",
-      "We have a clear plan",
-    ],
-    insight: {
-      text: "Partners who avoid the children conversation for 3+ years are 73% less likely to have kids together.",
-    },
-  },
-  {
-    id: 5,
-    text: "Does your partner want children?",
-    type: "choice",
-    options: [
-      "Definitely yes",
-      "Probably yes",
-      "Unsure",
-      "Probably not",
-      "Definitely not",
-      "Not applicable",
-    ],
-  },
-  {
-    id: 6,
-    text: "On a scale of 1–10, how anxious are you about your fertility?",
-    type: "number",
-    placeholder: "1–10",
-    min: 1,
-    max: 10,
-  },
-  {
-    id: 7,
-    text: "At what age did your mother have her first child?",
-    type: "choice",
-    options: [
-      "Under 25",
-      "25–29",
-      "30–34",
-      "35–39",
-      "40 or older",
-      "I don't know",
-    ],
-    insight: {
-      text: "Research shows 90% of women experience menopause within 5 years of their mother's age.",
-    },
-  },
-  {
-    id: 8,
-    text: "At what age did your mother go through menopause?",
-    type: "choice",
-    options: [
-      "Under 45",
-      "45–49",
-      "50–54",
-      "55 or older",
-      "I don't know",
-    ],
-  },
-  {
-    id: 9,
-    text: "Are there any known fertility issues in your immediate family?",
-    type: "choice",
-    options: [
-      "None that I know of",
-      "Minor issues",
-      "Significant issues",
-      "I'm not sure",
-    ],
-  },
-  {
-    id: 10,
-    text: "What's your biggest concern right now?",
-    type: "choice",
-    options: [
-      "Finding the right partner",
-      "Partner not being ready",
-      "Career timing",
-      "My age and fertility",
-      "Financial stability",
-    ],
-  },
+const RELATIONSHIP_STATUSES = [
+  "Single (looking)",
+  "Casually dating",
+  "Serious relationship",
+  "Engaged",
+  "Married",
 ];
 
-function InsightIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M10 2C6.13 2 3 5.13 3 9C3 11.38 4.19 13.47 6 14.74V17C6 17.55 6.45 18 7 18H13C13.55 18 14 17.55 14 17V14.74C15.81 13.47 17 11.38 17 9C17 5.13 13.87 2 10 2Z"
-        fill={COLORS.terracotta}
-        opacity="0.15"
-      />
-      <path
-        d="M10 2C6.13 2 3 5.13 3 9C3 11.38 4.19 13.47 6 14.74V17C6 17.55 6.45 18 7 18H13C13.55 18 14 17.55 14 17V14.74C15.81 13.47 17 11.38 17 9C17 5.13 13.87 2 10 2ZM10 4C12.76 4 15 6.24 15 9C15 10.65 14.18 12.1 12.88 13.01L12 13.59V16H8V13.59L7.12 13.01C5.82 12.1 5 10.65 5 9C5 6.24 7.24 4 10 4Z"
-        fill={COLORS.terracotta}
-      />
-      <rect x="8" y="18.5" width="4" height="1" rx="0.5" fill={COLORS.terracotta} />
-    </svg>
-  );
-}
+const TOGETHER_DURATIONS = [
+  "Less than 1 year",
+  "1-2 years",
+  "3-4 years",
+  "5-7 years",
+  "8+ years",
+];
+
+const DISCUSSION_OPTIONS = [
+  "Not at all",
+  "He changes the subject",
+  "We've talked briefly",
+  "We've had serious conversations",
+  "We have a clear plan",
+];
+
+const WANTS_CHILDREN_OPTIONS = [
+  "Definitely yes",
+  'Says yes, but "not yet"',
+  "He's unsure",
+  "He doesn't want them",
+  "He won't give a clear answer",
+];
+
+const RESPONSE_OPTIONS = [
+  "Engaged and thoughtful",
+  "Vague or dismissive",
+  "Gets defensive or annoyed",
+  "Promises 'we'll talk later'",
+  "We haven't discussed it",
+];
+
+const MOTHER_AGE_OPTIONS = [
+  "Under 25",
+  "25-29",
+  "30-34",
+  "35-39",
+  "40+",
+  "Don't know",
+];
+
+const NOT_READY_OPTIONS = [
+  "Give him more time",
+  "Set a deadline",
+  "Consider leaving",
+  "Already considering leaving",
+  "He hasn't said that",
+];
+
+const FEAR_OPTIONS = [
+  "Running out of time with the wrong person",
+  "Missing my chance at motherhood",
+  "Resenting him if I stay",
+  "Starting over at my age",
+  "Making the wrong choice",
+];
+
+const INSIGHTS: Record<number, { condition?: (answers: Answer[]) => boolean; text: string }> = {
+  3: {
+    condition: (answers) => {
+      const duration = answers[2] as string;
+      const discussion = answers[3] as string;
+      const longRelationship = ["3-4 years", "5-7 years", "8+ years"].includes(duration);
+      const avoidsTalk = ["Not at all", "He changes the subject"].includes(discussion);
+      return longRelationship && avoidsTalk;
+    },
+    text: "Research shows that in relationships over 3 years, partners who avoid the children conversation are 73% less likely to have them together.",
+  },
+  4: {
+    condition: (answers) => {
+      const duration = answers[2] as string;
+      const wantsKids = answers[4] as string;
+      const longRelationship = ["3-4 years", "5-7 years", "8+ years"].includes(duration);
+      return longRelationship && wantsKids === 'Says yes, but "not yet"';
+    },
+    text: '"Not yet" for 3+ years often means "not with you." This is one of the hardest truths — but also the most freeing once you face it.',
+  },
+  7: {
+    text: "Most women experience menopause around the same age as their mother (±5 years). Your mother's fertility history is one of the strongest predictors of your own timeline.",
+  },
+};
 
 export default function QuizPage() {
   const router = useRouter();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [numberValue, setNumberValue] = useState("");
-  const [showInsight, setShowInsight] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [direction, setDirection] = useState(1);
-
-  const currentQuestion = questions[currentIndex];
-  const totalQuestions = questions.length;
-  const progress = ((currentIndex) / totalQuestions) * 100;
-
-  const goToNext = useCallback(() => {
-    if (currentIndex < totalQuestions - 1) {
-      setDirection(1);
-      setNumberValue("");
-      setSelectedOption(null);
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      router.push(
-        `/results?data=${encodeURIComponent(JSON.stringify(answers))}`
-      );
-    }
-  }, [currentIndex, totalQuestions, answers, router]);
-
-  const handleChoiceSelect = useCallback(
-    (option: string) => {
-      setSelectedOption(option);
-      const newAnswers = { ...answers, [currentQuestion.id]: option };
-      setAnswers(newAnswers);
-
-      if (currentQuestion.insight) {
-        setTimeout(() => {
-          setShowInsight(true);
-        }, 400);
-      } else {
-        setTimeout(() => {
-          if (currentIndex < totalQuestions - 1) {
-            setDirection(1);
-            setNumberValue("");
-            setSelectedOption(null);
-            setCurrentIndex((prev) => prev + 1);
-          } else {
-            router.push(
-              `/results?data=${encodeURIComponent(JSON.stringify(newAnswers))}`
-            );
-          }
-        }, 600);
-      }
-    },
-    [answers, currentQuestion, currentIndex, totalQuestions, router]
-  );
+  const [state, setState] = useState<QuizState>({
+    currentQuestion: 0,
+    answers: Array(10).fill(null),
+    direction: "forward",
+    showInsight: false,
+  });
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [ageInput, setAgeInput] = useState("");
+  const [anxietyValue, setAnxietyValue] = useState(5);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (showInsight) {
-      const timer = setTimeout(() => {
-        setShowInsight(false);
-        setTimeout(() => {
-          goToNext();
-        }, 300);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showInsight, goToNext]);
+    setMounted(true);
+  }, []);
 
-  const handleNumberSubmit = () => {
-    const val = parseInt(numberValue, 10);
-    if (
-      !isNaN(val) &&
-      val >= (currentQuestion.min ?? 0) &&
-      val <= (currentQuestion.max ?? 999)
-    ) {
-      setAnswers({ ...answers, [currentQuestion.id]: numberValue });
-      goToNext();
-    }
-  };
+  const isInRelationship = useCallback(() => {
+    const status = state.answers[1] as string;
+    return ["Serious relationship", "Engaged", "Married"].includes(status);
+  }, [state.answers]);
 
-  const isNumberValid = () => {
-    const val = parseInt(numberValue, 10);
-    return (
-      !isNaN(val) &&
-      val >= (currentQuestion.min ?? 0) &&
-      val <= (currentQuestion.max ?? 999)
-    );
-  };
-
-  const slideVariants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 80 : -80,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
+  const getEffectiveQuestionIndex = useCallback(
+    (displayIndex: number): number => {
+      if (!isInRelationship() && displayIndex >= 2) {
+        return displayIndex + 1;
+      }
+      return displayIndex;
     },
-    exit: (dir: number) => ({
-      x: dir > 0 ? -80 : 80,
-      opacity: 0,
-    }),
+    [isInRelationship]
+  );
+
+  const getTotalQuestions = useCallback(() => {
+    return isInRelationship() ? 10 : 9;
+  }, [isInRelationship]);
+
+  const goToNext = useCallback(() => {
+    if (isAnimating) return;
+
+    const total = getTotalQuestions();
+    const effectiveIdx = getEffectiveQuestionIndex(state.currentQuestion);
+
+    // Check for insight
+    const insight = INSIGHTS[effectiveIdx];
+    if (insight && !state.showInsight) {
+      const shouldShow = insight.condition ? insight.condition(state.answers) : true;
+      if (shouldShow) {
+        setState((prev) => ({ ...prev, showInsight: true }));
+        return;
+      }
+    }
+
+    if (state.currentQuestion >= total - 1) {
+      // Encode answers and navigate to results
+      const encoded = btoa(JSON.stringify(state.answers));
+      router.push(`/results?d=${encodeURIComponent(encoded)}`);
+      return;
+    }
+
+    setIsAnimating(true);
+    setState((prev) => ({
+      ...prev,
+      direction: "forward",
+      showInsight: false,
+      currentQuestion: prev.currentQuestion + 1,
+    }));
+    setTimeout(() => setIsAnimating(false), 400);
+  }, [state, isAnimating, getTotalQuestions, getEffectiveQuestionIndex, router]);
+
+  const goToPrev = useCallback(() => {
+    if (isAnimating || state.currentQuestion === 0) return;
+    setIsAnimating(true);
+    setState((prev) => ({
+      ...prev,
+      direction: "backward",
+      showInsight: false,
+      currentQuestion: prev.currentQuestion - 1,
+    }));
+    setTimeout(() => setIsAnimating(false), 400);
+  }, [state.currentQuestion, isAnimating]);
+
+  const setAnswer = useCallback(
+    (value: Answer, autoAdvance = true) => {
+      const effectiveIdx = getEffectiveQuestionIndex(state.currentQuestion);
+      setState((prev) => {
+        const newAnswers = [...prev.answers];
+        newAnswers[effectiveIdx] = value;
+        return { ...prev, answers: newAnswers };
+      });
+      if (autoAdvance) {
+        setTimeout(() => goToNext(), 350);
+      }
+    },
+    [state.currentQuestion, getEffectiveQuestionIndex, goToNext]
+  );
+
+  const effectiveIdx = getEffectiveQuestionIndex(state.currentQuestion);
+  const total = getTotalQuestions();
+  const progress = ((state.currentQuestion + 1) / total) * 100;
+
+  if (!mounted) return null;
+
+  // Insight overlay
+  if (state.showInsight) {
+    const insight = INSIGHTS[effectiveIdx];
+    if (insight) {
+      return (
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FDF8F4" }}>
+          <div
+            className="flex-1 flex items-center justify-center px-6"
+            style={{
+              animation: "fadeSlideUp 0.5s ease-out",
+            }}
+          >
+            <div className="max-w-lg w-full text-center">
+              <div
+                className="w-16 h-16 rounded-full mx-auto mb-8 flex items-center justify-center"
+                style={{ backgroundColor: "#C4725A20" }}
+              >
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#C4725A"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </div>
+
+              <p
+                className="text-lg leading-relaxed mb-12"
+                style={{
+                  color: "#3D2B1F",
+                  fontFamily: "'Georgia', serif",
+                  lineHeight: "1.8",
+                }}
+              >
+                {insight.text}
+              </p>
+
+              <button
+                onClick={() => {
+                  setState((prev) => ({ ...prev, showInsight: false }));
+                  setTimeout(() => {
+                    if (state.currentQuestion >= total - 1) {
+                      const encoded = btoa(JSON.stringify(state.answers));
+                      router.push(`/results?d=${encodeURIComponent(encoded)}`);
+                    } else {
+                      setIsAnimating(true);
+                      setState((prev) => ({
+                        ...prev,
+                        direction: "forward",
+                        currentQuestion: prev.currentQuestion + 1,
+                      }));
+                      setTimeout(() => setIsAnimating(false), 400);
+                    }
+                  }, 50);
+                }}
+                className="px-8 py-3 rounded-full text-white text-sm tracking-wide transition-all duration-300 hover:opacity-90"
+                style={{
+                  backgroundColor: "#C4725A",
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+
+          <style jsx>{`
+            @keyframes fadeSlideUp {
+              from {
+                opacity: 0;
+                transform: translateY(20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
+        </div>
+      );
+    }
+  }
+
+  const renderQuestion = () => {
+    const animClass = state.direction === "forward" ? "slideInRight" : "slideInLeft";
+
+    switch (effectiveIdx) {
+      // Q0: Age
+      case 0:
+        return (
+          <div key="q0" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">How old are you?</h2>
+            <p className="question-subtitle">Your age is the single most important factor in your fertility timeline.</p>
+            <div className="flex flex-col items-center gap-6 mt-8">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={18}
+                max={55}
+                value={ageInput}
+                onChange={(e) => setAgeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const val = parseInt(ageInput);
+                    if (val >= 18 && val <= 55) {
+                      setAnswer(val, true);
+                    }
+                  }
+                }}
+                placeholder="Enter your age"
+                className="text-center text-3xl py-4 px-6 rounded-2xl border-2 w-48 outline-none transition-all duration-300 focus:shadow-lg"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: ageInput ? "#C4725A" : "#E8DDD5",
+                  color: "#3D2B1F",
+                  fontFamily: "'Georgia', serif",
+                }}
+              />
+              {ageInput && parseInt(ageInput) >= 18 && parseInt(ageInput) <= 55 && (
+                <button
+                  onClick={() => setAnswer(parseInt(ageInput), true)}
+                  className="next-button"
+                  style={{ animation: "fadeIn 0.3s ease-out" }}
+                >
+                  Continue
+                </button>
+              )}
+            </div>
+          </div>
+        );
+
+      // Q1: Relationship status
+      case 1:
+        return (
+          <div key="q1" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">What&apos;s your relationship status?</h2>
+            <p className="question-subtitle">This helps us understand the dynamics that matter most.</p>
+            <div className="options-grid mt-8">
+              {RELATIONSHIP_STATUSES.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[1] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q2: How long together (only if in relationship)
+      case 2:
+        return (
+          <div key="q2" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">How long have you been together?</h2>
+            <p className="question-subtitle">Time reveals intention. This is more important than most people realize.</p>
+            <div className="options-grid mt-8">
+              {TOGETHER_DURATIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[2] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q3: Discussed children
+      case 3:
+        return (
+          <div key="q3" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">Have you two discussed having children?</h2>
+            <p className="question-subtitle">The conversation itself — or the avoidance of it — tells you everything.</p>
+            <div className="options-grid mt-8">
+              {DISCUSSION_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[3] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q4: Does he want children
+      case 4:
+        return (
+          <div key="q4" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">Does he want children?</h2>
+            <p className="question-subtitle">Not what he says to keep you — what he actually shows you.</p>
+            <div className="options-grid mt-8">
+              {WANTS_CHILDREN_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[4] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q5: His response when you bring it up
+      case 5:
+        return (
+          <div key="q5" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">What&apos;s his usual response when you bring it up?</h2>
+            <p className="question-subtitle">Patterns of response are patterns of intent.</p>
+            <div className="options-grid mt-8">
+              {RESPONSE_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[5] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q6: Anxiety scale
+      case 6:
+        return (
+          <div key="q6" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">On a scale of 1–10, how anxious are you about your timeline?</h2>
+            <p className="question-subtitle">1 = completely at peace &nbsp;&nbsp; 10 = it keeps you up at night</p>
+            <div className="flex flex-col items-center gap-8 mt-10">
+              <div
+                className="text-6xl font-light"
+                style={{
+                  color: anxietyValue >= 7 ? "#C4725A" : "#3D2B1F",
+                  fontFamily: "'Georgia', serif",
+                  transition: "color 0.3s ease",
+                }}
+              >
+                {anxietyValue}
+              </div>
+              <div className="w-full max-w-sm px-4">
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={anxietyValue}
+                  onChange={(e) => setAnxietyValue(parseInt(e.target.value))}
+                  className="anxiety-slider w-full"
+                />
+                <div className="flex justify-between mt-2 text-xs" style={{ color: "#8B7B6B" }}>
+                  <span>At peace</span>
+                  <span>Constant worry</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setAnswer(anxietyValue, true)}
+                className="next-button mt-4"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        );
+
+      // Q7: Mother's age at first child
+      case 7:
+        return (
+          <div key="q7" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">At what age did your mother have her first child?</h2>
+            <p className="question-subtitle">Your family history shapes your biological window more than you might think.</p>
+            <div className="options-grid mt-8">
+              {MOTHER_AGE_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[7] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q8: If he said "I'm not ready"
+      case 8:
+        return (
+          <div key="q8" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">If he said &quot;I&apos;m not ready&quot; today, would you:</h2>
+            <p className="question-subtitle">Be honest. Your gut reaction matters more than the &quot;right&quot; answer.</p>
+            <div className="options-grid mt-8">
+              {NOT_READY_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[8] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Q9: Biggest fear
+      case 9:
+        return (
+          <div key="q9" className="question-container" style={{ animation: `${animClass} 0.4s ease-out` }}>
+            <h2 className="question-title">What scares you the most?</h2>
+            <p className="question-subtitle">The fear you name is the fear you can face.</p>
+            <div className="options-grid mt-8">
+              {FEAR_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setAnswer(option)}
+                  className={`option-button ${state.answers[9] === option ? "selected" : ""}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ backgroundColor: COLORS.cream }}
-    >
-      {/* HEADER */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{ backgroundColor: COLORS.cream }}
-      >
-        <div className="max-w-2xl mx-auto px-6 pt-5 pb-3 flex items-center justify-between">
-          <span
-            className="text-xl tracking-wide"
-            style={{
-              fontFamily: "'Cormorant Garamond', 'Cormorant', Georgia, serif",
-              color: COLORS.charcoal,
-              fontWeight: 600,
-              letterSpacing: "0.02em",
-            }}
-          >
-            Claira
-          </span>
-          <span
-            className="text-sm"
-            style={{
-              color: COLORS.charcoalLight,
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              fontWeight: 400,
-              letterSpacing: "0.01em",
-            }}
-          >
-            Question {currentIndex + 1} of {totalQuestions}
-          </span>
-        </div>
-        {/* Progress bar */}
-        <div className="max-w-2xl mx-auto px-6 pb-4">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FDF8F4" }}>
+      {/* Header */}
+      <header className="px-6 pt-6 pb-2">
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={goToPrev}
+              className={`p-2 rounded-full transition-all duration-300 ${
+                state.currentQuestion === 0 ? "opacity-0 pointer-events-none" : "opacity-100"
+              }`}
+              style={{ backgroundColor: "#E8DDD520" }}
+              aria-label="Go back"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#8B7B6B"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <span
+              className="text-sm tracking-wider"
+              style={{
+                color: "#8B7B6B",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              {state.currentQuestion + 1} of {total}
+            </span>
+
+            <div className="w-9" />
+          </div>
+
+          {/* Progress bar */}
           <div
-            className="w-full h-[3px] rounded-full overflow-hidden"
-            style={{ backgroundColor: COLORS.charcoalLighter }}
+            className="w-full h-1 rounded-full overflow-hidden"
+            style={{ backgroundColor: "#E8DDD5" }}
           >
-            <motion.div
-              className="h-full rounded-full"
-              style={{ backgroundColor: COLORS.terracotta }}
-              initial={false}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            <div
+              className="h-full rounded-full transition-all duration-500 ease-out"
+              style={{
+                width: `${progress}%`,
+                background: "linear-gradient(90deg, #C4725A, #D4956B)",
+              }}
             />
           </div>
         </div>
       </header>
 
-      {/* MAIN */}
-      <main className="flex-1 flex items-center justify-center px-6 pt-24 pb-12">
-        <div className="w-full max-w-lg relative">
-          <AnimatePresence mode="wait" custom={direction}>
-            {!showInsight ? (
-              <motion.div
-                key={`question-${currentQuestion.id}`}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  duration: 0.4,
-                  ease: [0.4, 0, 0.2, 1],
-                }}
-                className="w-full"
-              >
-                {/* Question text */}
-                <motion.h2
-                  className="mb-10 leading-tight"
-                  style={{
-                    fontFamily:
-                      "'Cormorant Garamond', 'Cormorant', Georgia, serif",
-                    color: COLORS.charcoal,
-                    fontSize: "clamp(1.75rem, 4vw, 2.25rem)",
-                    fontWeight: 500,
-                    lineHeight: 1.3,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {currentQuestion.text}
-                </motion.h2>
-
-                {/* Number input */}
-                {currentQuestion.type === "number" && (
-                  <div className="space-y-6">
-                    <Input
-                      type="number"
-                      value={numberValue}
-                      onChange={(e) => setNumberValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && isNumberValid()) {
-                          handleNumberSubmit();
-                        }
-                      }}
-                      placeholder={currentQuestion.placeholder}
-                      min={currentQuestion.min}
-                      max={currentQuestion.max}
-                      autoFocus
-                      className="h-16 text-xl border-2 rounded-xl px-5 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-200"
-                      style={{
-                        backgroundColor: COLORS.white,
-                        borderColor: numberValue
-                          ? COLORS.terracotta
-                          : COLORS.charcoalLighter,
-                        color: COLORS.charcoal,
-                        fontFamily:
-                          "'Cormorant Garamond', 'Cormorant', Georgia, serif",
-                        fontSize: "1.375rem",
-                        fontWeight: 500,
-                      }}
-                    />
-                    <Button
-                      onClick={handleNumberSubmit}
-                      disabled={!isNumberValid()}
-                      className="w-full h-14 text-base font-medium rounded-xl transition-all duration-300 border-0"
-                      style={{
-                        backgroundColor: isNumberValid()
-                          ? COLORS.terracotta
-                          : COLORS.charcoalLighter,
-                        color: isNumberValid()
-                          ? COLORS.white
-                          : COLORS.charcoalLight,
-                        fontFamily: "system-ui, -apple-system, sans-serif",
-                        letterSpacing: "0.02em",
-                        cursor: isNumberValid() ? "pointer" : "not-allowed",
-                      }}
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                )}
-
-                {/* Multiple choice */}
-                {currentQuestion.type === "choice" && currentQuestion.options && (
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((option, idx) => {
-                      const isSelected = selectedOption === option;
-                      return (
-                        <motion.button
-                          key={option}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.35,
-                            delay: idx * 0.05,
-                            ease: [0.4, 0, 0.2, 1],
-                          }}
-                          onClick={() => handleChoiceSelect(option)}
-                          className="w-full text-left rounded-xl px-6 py-4 border-2 transition-all duration-200 cursor-pointer"
-                          style={{
-                            backgroundColor: isSelected
-                              ? COLORS.terracottaLight
-                              : COLORS.white,
-                            borderColor: isSelected
-                              ? COLORS.terracotta
-                              : "rgba(44, 44, 44, 0.1)",
-                            color: COLORS.charcoal,
-                            fontFamily:
-                              "system-ui, -apple-system, sans-serif",
-                            fontSize: "1.05rem",
-                            fontWeight: isSelected ? 500 : 400,
-                            lineHeight: 1.5,
-                          }}
-                          whileHover={{
-                            borderColor: COLORS.terracotta,
-                            scale: 1.01,
-                          }}
-                          whileTap={{ scale: 0.99 }}
-                        >
-                          <span className="flex items-center gap-4">
-                            <span
-                              className="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200"
-                              style={{
-                                borderColor: isSelected
-                                  ? COLORS.terracotta
-                                  : COLORS.charcoalLighter,
-                              }}
-                            >
-                              {isSelected && (
-                                <motion.span
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{
-                                    duration: 0.2,
-                                    ease: "easeOut",
-                                  }}
-                                  className="w-2.5 h-2.5 rounded-full"
-                                  style={{
-                                    backgroundColor: COLORS.terracotta,
-                                  }}
-                                />
-                              )}
-                            </span>
-                            <span>{option}</span>
-                          </span>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              /* INSIGHT CARD */
-              <motion.div
-                key={`insight-${currentQuestion.id}`}
-                initial={{ opacity: 0, y: 20, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.97 }}
-                transition={{
-                  duration: 0.5,
-                  ease: [0.4, 0, 0.2, 1],
-                }}
-                className="w-full"
-              >
-                <div
-                  className="rounded-2xl p-8 border-l-4"
-                  style={{
-                    backgroundColor: COLORS.white,
-                    borderLeftColor: COLORS.terracotta,
-                    boxShadow:
-                      "0 4px 24px rgba(44, 44, 44, 0.06), 0 1px 4px rgba(44, 44, 44, 0.04)",
-                  }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mt-0.5"
-                      style={{ backgroundColor: COLORS.terracottaLight }}
-                    >
-                      <InsightIcon />
-                    </div>
-                    <div>
-                      <p
-                        className="text-xs uppercase tracking-widest mb-3 font-medium"
-                        style={{ color: COLORS.terracotta }}
-                      >
-                        Did you know?
-                      </p>
-                      <p
-                        className="leading-relaxed"
-                        style={{
-                          fontFamily:
-                            "'Cormorant Garamond', 'Cormorant', Georgia, serif",
-                          color: COLORS.charcoal,
-                          fontSize: "1.25rem",
-                          fontWeight: 500,
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {currentQuestion.insight?.text}
-                      </p>
-                    </div>
-                  </div>
-                  {/* Progress dots for insight */}
-                  <div className="flex justify-center mt-6 gap-1.5">
-                    {[0, 1, 2].map((dot) => (
-                      <motion.div
-                        key={dot}
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ backgroundColor: COLORS.terracotta }}
-                        initial={{ opacity: 0.2 }}
-                        animate={{ opacity: 1 }}
-                        transition={{
-                          duration: 0.4,
-                          delay: dot * 0.8,
-                          repeat: 0,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+      {/* Question Area */}
+      <main className="flex-1 flex items-center justify-center px-6 py-8">
+        <div className="max-w-lg w-full">{renderQuestion()}</div>
       </main>
 
-      {/* Subtle footer */}
-      <footer className="pb-6 text-center">
-        <p
-          className="text-xs"
-          style={{
-            color: COLORS.charcoalLighter,
-            fontFamily: "system-ui, -apple-system, sans-serif",
-          }}
-        >
-          Your answers are private and secure
-        </p>
-      </footer>
+      {/* Global Styles */}
+      <style jsx>{`
+        .question-container {
+          text-align: center;
+        }
+
+        .question-title {
+          font-family: "Georgia", serif;
+          font-size: 1.6rem;
+          font-weight: 400;
+          line-height: 1.35;
+          color: #3d2b1f;
+          margin-bottom: 0.75rem;
+        }
+
+        .question-subtitle {
+          font-family: "Inter", sans-serif;
+          font-size: 0.9rem;
+          color: #8b7b6b;
+          line-height: 1.6;
+          max-width: 400px;
+          margin: 0 auto;
+        }
+
+        .options-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-width: 420px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .option-button {
+          width: 100%;
+          padding: 16px 24px;
+          border-radius: 16px;
+          border: 2px solid #e8ddd5;
+          background: white;
+          color: #3d2b1f;
+          font-family: "Inter", sans-serif;
+          font-size: 0.95rem;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          line-height: 1.4;
+        }
+
+        .option-button:hover {
+          border-color: #c4725a;
+          background: #fdf2ed;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(196, 114, 90, 0.12);
+        }
+
+        .option-button:active {
+          transform: translateY(0);
+        }
+
+        .option-button.selected {
+          border-color: #c4725a;
+          background: #c4725a;
+          color: white;
+        }
+
+        .next-button {
+          padding: 14px 40px;
+          border-radius: 50px;
+          border: none;
+          background: #c4725a;
+          color: white;
+          font-family: "Inter", sans-serif;
+          font-size: 0.9rem;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .next-button:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(196, 114, 90, 0.3);
+        }
+
+        .anxiety-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 6px;
+          border-radius: 3px;
+          background: linear-gradient(
+            90deg,
+            #e8ddd5 0%,
+            #c4725a 100%
+          );
+          outline: none;
+        }
+
+        .anxiety-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: #c4725a;
+          cursor: pointer;
+          border: 4px solid white;
+          box-shadow: 0 2px 8px rgba(196, 114, 90, 0.35);
+          transition: transform 0.2s ease;
+        }
+
+        .anxiety-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+        }
+
+        .anxiety-slider::-moz-range-thumb {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: #c4725a;
+          cursor: pointer;
+          border: 4px solid white;
+          box-shadow: 0 2px 8px rgba(196, 114, 90, 0.35);
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,546 +1,441 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion, useAnimation } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Shield, Clock, BarChart3, AlertTriangle, Lightbulb } from "lucide-react";
-
-const fadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.15,
-      duration: 0.8,
-    },
-  }),
-};
-
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.12,
-    },
-  },
-};
 
 export default function Home() {
   const router = useRouter();
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        backgroundColor: "#FAF8F5",
-        color: "#2C2C2C",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      }}
-    >
-      {/* Subtle grain texture overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-        }}
-      />
-
+    <div className="min-h-screen bg-[#FDF8F4]">
       {/* Navigation */}
-      <motion.nav
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 0.2 }}
-        className="relative z-10 flex items-center justify-between px-8 py-6 md:px-16 lg:px-24"
-      >
-        <span
-          className="text-2xl tracking-wide"
-          style={{
-            fontFamily: "Cormorant Garamond, serif",
-            fontWeight: 500,
-            color: "#2C2C2C",
-            letterSpacing: "0.08em",
-          }}
+      <nav className="flex items-center justify-between px-6 py-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto">
+        <div
+          className="text-[28px] tracking-[0.04em] text-[#3D2E2E]"
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         >
           Claira
-        </span>
-        <div className="hidden sm:flex items-center gap-1 text-xs tracking-wide opacity-40">
-          <Shield className="w-3 h-3" />
-          <span>100% Anonymous</span>
         </div>
-      </motion.nav>
+        <button
+          onClick={() => router.push("/quiz")}
+          className="text-[13px] tracking-[0.08em] uppercase text-[#3D2E2E] border border-[#3D2E2E]/30 px-5 py-2.5 rounded-full hover:bg-[#3D2E2E] hover:text-[#FDF8F4] transition-all duration-300"
+          style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+        >
+          Take the Quiz
+        </button>
+      </nav>
 
       {/* Hero Section */}
-      <section className="relative z-10 flex flex-col items-center text-center px-6 pt-16 pb-20 md:pt-24 md:pb-28 lg:pt-32 lg:pb-36">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="max-w-3xl mx-auto"
-        >
-          <motion.p
-            custom={0}
-            variants={fadeIn}
-            className="text-xs uppercase tracking-[0.3em] mb-8 opacity-50"
-            style={{ fontFamily: "-apple-system, sans-serif" }}
-          >
-            Fertility Timeline Assessment
-          </motion.p>
+      <section className="px-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto pt-16 md:pt-24 lg:pt-32 pb-20 md:pb-32">
+        <div className="max-w-[820px]">
+          {/* Eyebrow */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-8 h-[1px] bg-[#C4725A]" />
+            <span
+              className="text-[12px] tracking-[0.16em] uppercase text-[#C4725A]"
+              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+            >
+              The 2-Minute Reality Check
+            </span>
+          </div>
 
-          <motion.h1
-            custom={1}
-            variants={fadeIn}
-            className="text-5xl md:text-6xl lg:text-7xl leading-[1.08] mb-8"
-            style={{
-              fontFamily: "Cormorant Garamond, serif",
-              fontWeight: 400,
-              letterSpacing: "-0.01em",
-            }}
+          {/* Main Headline */}
+          <h1
+            className="text-[48px] md:text-[64px] lg:text-[80px] leading-[1.05] text-[#3D2E2E] mb-6"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
           >
-            Am I Wasting
+            Is He Wasting
             <br />
-            My Fertile Years?
-          </motion.h1>
+            Your Time?
+          </h1>
 
-          <motion.p
-            custom={2}
-            variants={fadeIn}
-            className="text-lg md:text-xl mb-12 max-w-lg mx-auto leading-relaxed"
+          {/* Subheadline */}
+          <p
+            className="text-[18px] md:text-[21px] leading-[1.6] text-[#3D2E2E]/70 max-w-[560px] mb-12"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 300 }}
+          >
+            Find out if your relationship timeline adds up&thinsp;—&thinsp;before
+            it&rsquo;s too late.
+          </p>
+
+          {/* CTA */}
+          <button
+            onClick={() => router.push("/quiz")}
+            className="group relative bg-[#C4725A] text-white px-10 py-4.5 rounded-full text-[15px] tracking-[0.06em] hover:bg-[#B5634C] transition-all duration-300 shadow-[0_4px_24px_rgba(196,114,90,0.3)] hover:shadow-[0_6px_32px_rgba(196,114,90,0.4)]"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+          >
+            Find Out If I&rsquo;m Wasting Time
+            <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform duration-300">
+              →
+            </span>
+          </button>
+
+          <p
+            className="mt-4 text-[13px] text-[#3D2E2E]/45 tracking-[0.02em]"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+          >
+            Takes 2 minutes&ensp;•&ensp;100% anonymous
+          </p>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20">
+        <div className="h-[1px] bg-[#3D2E2E]/10" />
+      </div>
+
+      {/* Reddit Quote — The Gut Punch */}
+      <section className="px-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto py-20 md:py-28">
+        <div className="max-w-[780px] mx-auto">
+          {/* Label */}
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#C4725A]/20 flex items-center justify-center">
+              <div className="w-1 h-1 rounded-full bg-[#C4725A]" />
+            </div>
+            <span
+              className="text-[11px] tracking-[0.18em] uppercase text-[#3D2E2E]/40"
+              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+            >
+              Why women are searching for answers
+            </span>
+          </div>
+
+          {/* The Quote Card */}
+          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-[0_2px_40px_rgba(61,46,46,0.06)] border border-[#3D2E2E]/[0.04]">
+            {/* Reddit-style header */}
+            <div className="flex items-center gap-2.5 mb-6">
+              <div className="w-5 h-5 rounded-full bg-[#FF4500]/10 flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF4500">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.066 13.71c.147.325.22.676.22 1.04 0 2.654-3.1 4.81-6.916 4.81-3.817 0-6.917-2.156-6.917-4.81 0-.37.076-.726.226-1.054-.672-.488-1.109-1.27-1.109-2.156 0-1.468 1.19-2.66 2.66-2.66.72 0 1.37.287 1.85.753C9.618 8.832 10.78 8.4 12.07 8.4c1.29 0 2.452.432 3.89 1.233.48-.466 1.13-.753 1.85-.753 1.47 0 2.66 1.192 2.66 2.66 0 .886-.437 1.668-1.109 2.156z" />
+                </svg>
+              </div>
+              <span
+                className="text-[12px] text-[#3D2E2E]/40"
+                style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+              >
+                r/relationship_advice
+              </span>
+            </div>
+
+            {/* Quote Text */}
+            <blockquote
+              className="text-[20px] md:text-[24px] leading-[1.55] text-[#3D2E2E] mb-8"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              &ldquo;We&rsquo;ve been together 4 years. I&rsquo;m 31. Every time I
+              bring up kids he says &lsquo;not yet.&rsquo; My doctor told me my
+              fertility is already declining. I love him but I&rsquo;m terrified
+              I&rsquo;m going to wake up at 37 and realize I gave my best years to
+              someone who was never going to be ready.&rdquo;
+            </blockquote>
+
+            {/* Engagement Stats */}
+            <div className="flex items-center gap-4 text-[13px] text-[#3D2E2E]/35" style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+              <div className="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 19V5M5 12l7-7 7 7" />
+                </svg>
+                <span>13,631</span>
+              </div>
+              <span>•</span>
+              <span>847 comments</span>
+              <span>•</span>
+              <span>Posted 3 days ago</span>
+            </div>
+          </div>
+
+          {/* Below quote — the reframe */}
+          <p
+            className="mt-10 text-center text-[16px] md:text-[17px] leading-[1.7] text-[#3D2E2E]/55 max-w-[520px] mx-auto"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 300 }}
+          >
+            Thousands of women are asking the same question.
+            <br />
+            <span className="text-[#3D2E2E]/80 font-normal">
+              We built a tool that actually answers it.
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20">
+        <div className="h-[1px] bg-[#3D2E2E]/10" />
+      </div>
+
+      {/* Value Props */}
+      <section className="px-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto py-20 md:py-28">
+        {/* Section Label */}
+        <div className="flex items-center gap-3 mb-16">
+          <div className="w-8 h-[1px] bg-[#C4725A]" />
+          <span
+            className="text-[12px] tracking-[0.16em] uppercase text-[#C4725A]"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+          >
+            What you&rsquo;ll discover
+          </span>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-12 md:gap-8 lg:gap-16">
+          {/* Prop 1 */}
+          <div className="group">
+            <div className="text-[36px] mb-5">🚩</div>
+            <h3
+              className="text-[22px] md:text-[24px] text-[#3D2E2E] mb-4 leading-[1.3]"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              See the Red Flags
+            </h3>
+            <p
+              className="text-[15px] leading-[1.7] text-[#3D2E2E]/55"
+              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 300 }}
+            >
+              Compare your relationship timeline to 500+ women. Learn what
+              actually predicts breakups vs. babies&thinsp;—&thinsp;based on real
+              outcomes, not guesses.
+            </p>
+          </div>
+
+          {/* Prop 2 */}
+          <div className="group">
+            <div className="text-[36px] mb-5">⏰</div>
+            <h3
+              className="text-[22px] md:text-[24px] text-[#3D2E2E] mb-4 leading-[1.3]"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              Your Reality Check
+            </h3>
+            <p
+              className="text-[15px] leading-[1.7] text-[#3D2E2E]/55"
+              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 300 }}
+            >
+              See how much time you realistically have&thinsp;—&thinsp;and what
+              that means for <em>this</em> relationship. Not scare tactics. Just
+              math.
+            </p>
+          </div>
+
+          {/* Prop 3 */}
+          <div className="group">
+            <div className="text-[36px] mb-5">💬</div>
+            <h3
+              className="text-[22px] md:text-[24px] text-[#3D2E2E] mb-4 leading-[1.3]"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              Stories Like Yours
+            </h3>
+            <p
+              className="text-[15px] leading-[1.7] text-[#3D2E2E]/55"
+              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 300 }}
+            >
+              Read what happened to women who waited vs. women who didn&rsquo;t.
+              Real stories. Real outcomes. So you can decide with clarity.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20">
+        <div className="h-[1px] bg-[#3D2E2E]/10" />
+      </div>
+
+      {/* Social Proof / Trust */}
+      <section className="px-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto py-20 md:py-24">
+        <div className="max-w-[680px] mx-auto text-center">
+          {/* Stats Row */}
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-14">
+            <div>
+              <div
+                className="text-[36px] md:text-[44px] text-[#3D2E2E]"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                500+
+              </div>
+              <div
+                className="text-[12px] tracking-[0.12em] uppercase text-[#3D2E2E]/40 mt-1"
+                style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+              >
+                Women surveyed
+              </div>
+            </div>
+            <div>
+              <div
+                className="text-[36px] md:text-[44px] text-[#3D2E2E]"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                2 min
+              </div>
+              <div
+                className="text-[12px] tracking-[0.12em] uppercase text-[#3D2E2E]/40 mt-1"
+                style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+              >
+                To complete
+              </div>
+            </div>
+            <div>
+              <div
+                className="text-[36px] md:text-[44px] text-[#3D2E2E]"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                100%
+              </div>
+              <div
+                className="text-[12px] tracking-[0.12em] uppercase text-[#3D2E2E]/40 mt-1"
+                style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+              >
+                Anonymous
+              </div>
+            </div>
+          </div>
+
+          {/* Featured In */}
+          <div className="flex items-center justify-center gap-6 text-[12px] tracking-[0.1em] text-[#3D2E2E]/30 uppercase" style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+            <span>Built from conversations on</span>
+            <div className="flex items-center gap-1.5 text-[#3D2E2E]/50">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.066 13.71c.147.325.22.676.22 1.04 0 2.654-3.1 4.81-6.916 4.81-3.817 0-6.917-2.156-6.917-4.81 0-.37.076-.726.226-1.054-.672-.488-1.109-1.27-1.109-2.156 0-1.468 1.19-2.66 2.66-2.66.72 0 1.37.287 1.85.753C9.618 8.832 10.78 8.4 12.07 8.4c1.29 0 2.452.432 3.89 1.233.48-.466 1.13-.753 1.85-.753 1.47 0 2.66 1.192 2.66 2.66 0 .886-.437 1.668-1.109 2.156z" />
+              </svg>
+              <span>r/relationships</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1.5 text-[#3D2E2E]/50">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.066 13.71c.147.325.22.676.22 1.04 0 2.654-3.1 4.81-6.916 4.81-3.817 0-6.917-2.156-6.917-4.81 0-.37.076-.726.226-1.054-.672-.488-1.109-1.27-1.109-2.156 0-1.468 1.19-2.66 2.66-2.66.72 0 1.37.287 1.85.753C9.618 8.832 10.78 8.4 12.07 8.4c1.29 0 2.452.432 3.89 1.233.48-.466 1.13-.753 1.85-.753 1.47 0 2.66 1.192 2.66 2.66 0 .886-.437 1.668-1.109 2.156z" />
+              </svg>
+              <span>r/relationship_advice</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20">
+        <div className="h-[1px] bg-[#3D2E2E]/10" />
+      </div>
+
+      {/* Testimonial Snippets */}
+      <section className="px-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto py-20 md:py-28">
+        <div className="max-w-[820px] mx-auto">
+          <div className="flex items-center gap-3 mb-14">
+            <div className="w-8 h-[1px] bg-[#C4725A]" />
+            <span
+              className="text-[12px] tracking-[0.16em] uppercase text-[#C4725A]"
+              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+            >
+              Sound familiar?
+            </span>
+          </div>
+
+          <div className="space-y-8">
+            {[
+              {
+                quote:
+                  "He says he wants kids 'someday' but won't give me a year. I'm turning 32 next month. I need to know if I should stay or go.",
+                age: "31",
+                years: "3 years together",
+              },
+              {
+                quote:
+                  "My friends all have babies now. He told me to 'stop pressuring him.' But I'm not pressuring—I'm planning. There's a difference.",
+                age: "29",
+                years: "5 years together",
+              },
+              {
+                quote:
+                  "I froze my eggs last year because I couldn't get a straight answer from him. That should tell you everything.",
+                age: "34",
+                years: "4 years together",
+              },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white/60 rounded-xl p-7 md:p-8 border border-[#3D2E2E]/[0.04]"
+              >
+                <p
+                  className="text-[16px] md:text-[17px] leading-[1.65] text-[#3D2E2E]/75 mb-5"
+                  style={{
+                    fontFamily: "Georgia, 'Times New Roman', serif",
+                    fontStyle: "italic",
+                  }}
+                >
+                  &ldquo;{item.quote}&rdquo;
+                </p>
+                <div
+                  className="text-[12px] tracking-[0.08em] text-[#3D2E2E]/35"
+                  style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+                >
+                  Age {item.age}&ensp;•&ensp;{item.years}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-6 md:px-12 lg:px-20 max-w-[1400px] mx-auto pb-28 md:pb-36">
+        <div className="max-w-[680px] mx-auto text-center">
+          {/* Horizontal rule */}
+          <div className="w-12 h-[1px] bg-[#C4725A]/40 mx-auto mb-14" />
+
+          <h2
+            className="text-[32px] md:text-[42px] lg:text-[48px] leading-[1.15] text-[#3D2E2E] mb-6"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          >
+            You deserve an answer.
+          </h2>
+
+          <p
+            className="text-[17px] md:text-[18px] leading-[1.65] text-[#3D2E2E]/55 mb-10 max-w-[480px] mx-auto"
             style={{
-              color: "#5A5A5A",
+              fontFamily: "'Helvetica Neue', Arial, sans-serif",
               fontWeight: 300,
             }}
           >
-            Get your personalized fertility timeline in 2 minutes
-          </motion.p>
-
-          <motion.div custom={3} variants={fadeIn}>
-            <Button
-              onClick={() => router.push("/quiz")}
-              className="rounded-full px-10 py-7 text-base tracking-wide transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                backgroundColor: "#E07A5F",
-                color: "#FAF8F5",
-                fontFamily: "-apple-system, sans-serif",
-                fontWeight: 400,
-                letterSpacing: "0.04em",
-                border: "none",
-                boxShadow: "0 4px 24px rgba(224, 122, 95, 0.25)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#C96A52";
-                e.currentTarget.style.boxShadow = "0 6px 32px rgba(224, 122, 95, 0.35)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#E07A5F";
-                e.currentTarget.style.boxShadow = "0 4px 24px rgba(224, 122, 95, 0.25)";
-              }}
-            >
-              Get Your Fertility Timeline
-            </Button>
-          </motion.div>
-
-          <motion.p
-            custom={4}
-            variants={fadeIn}
-            className="mt-5 text-sm opacity-40"
-          >
-            Takes 2 minutes · 100% anonymous
-          </motion.p>
-        </motion.div>
-      </section>
-
-      {/* Thin decorative line */}
-      <motion.div
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: [0.25, 0.4, 0.25, 1] }}
-        className="mx-auto w-16 h-px"
-        style={{ backgroundColor: "#E07A5F", opacity: 0.4 }}
-      />
-
-      {/* Reddit Quote Section */}
-      <section className="relative z-10 px-6 py-20 md:py-28 lg:py-32">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-          className="max-w-2xl mx-auto"
-        >
-          <motion.p
-            custom={0}
-            variants={fadeIn}
-            className="text-xs uppercase tracking-[0.25em] mb-10 text-center opacity-40"
-          >
-            Why women are asking
-          </motion.p>
-
-          <motion.div custom={1} variants={fadeIn}>
-            <Card
-              className="border-0 p-8 md:p-12 lg:p-14"
-              style={{
-                backgroundColor: "#FFFFFF",
-                boxShadow: "0 2px 40px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)",
-                borderRadius: "16px",
-              }}
-            >
-              {/* Reddit badge */}
-              <div className="flex items-center gap-3 mb-8">
-                <div
-                  className="flex items-center justify-center w-8 h-8 rounded-full"
-                  style={{ backgroundColor: "#FF4500" }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                  >
-                    <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
-                  </svg>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUp className="w-4 h-4" style={{ color: "#FF4500" }} />
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: "#FF4500" }}
-                  >
-                    13,631
-                  </span>
-                </div>
-              </div>
-
-              {/* Quote */}
-              <blockquote
-                className="text-xl md:text-2xl leading-relaxed mb-8"
-                style={{
-                  fontFamily: "Cormorant Garamond, serif",
-                  fontStyle: "italic",
-                  fontWeight: 400,
-                  color: "#2C2C2C",
-                  lineHeight: 1.55,
-                }}
-              >
-                &ldquo;(UPDATE): My MIL exposed my (28f) past group-assault to
-                my husband (34m). Who had no idea. Wants him to divorce me.
-                Please help me.&rdquo;
-              </blockquote>
-
-              {/* Source */}
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-1 h-4 rounded-full"
-                  style={{ backgroundColor: "#E07A5F", opacity: 0.6 }}
-                />
-                <span className="text-sm opacity-50">
-                  r/relationship_advice
-                </span>
-              </div>
-            </Card>
-          </motion.div>
-
-          <motion.p
-            custom={2}
-            variants={fadeIn}
-            className="text-center mt-8 text-sm leading-relaxed max-w-md mx-auto"
-            style={{ color: "#8A8A8A" }}
-          >
-            Thousands of women share these fears every day.
-            <br />
-            Most never get a clear answer.
-          </motion.p>
-        </motion.div>
-      </section>
-
-      {/* Social Proof Strip */}
-      <motion.section
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-60px" }}
-        variants={fadeIn}
-        custom={0}
-        className="relative z-10 px-6 py-12"
-      >
-        <div
-          className="max-w-2xl mx-auto rounded-2xl px-8 py-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.6)",
-            border: "1px solid rgba(0,0,0,0.04)",
-          }}
-        >
-          <p
-            className="text-sm text-center sm:text-left"
-            style={{ color: "#2C2C2C" }}
-          >
-            <span
-              className="font-semibold"
-              style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.15rem" }}
-            >
-              12,847
-            </span>{" "}
-            <span className="opacity-60">women have gotten their timeline</span>
+            Not &ldquo;someday.&rdquo; Not &ldquo;we&rsquo;ll see.&rdquo; A real,
+            data-backed picture of where your relationship stands.
           </p>
-          <div className="hidden sm:block w-px h-5 bg-black/10" />
-          <div className="flex items-center gap-5 text-xs opacity-50">
-            <span className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" />
-              100% Anonymous
+
+          <button
+            onClick={() => router.push("/quiz")}
+            className="group relative bg-[#C4725A] text-white px-12 py-5 rounded-full text-[16px] tracking-[0.04em] hover:bg-[#B5634C] transition-all duration-300 shadow-[0_4px_24px_rgba(196,114,90,0.3)] hover:shadow-[0_8px_40px_rgba(196,114,90,0.4)]"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+          >
+            Find Out If I&rsquo;m Wasting Time
+            <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform duration-300">
+              →
             </span>
-            <span className="flex items-center gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5" />
-              Research-backed
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              2 minutes
-            </span>
-          </div>
+          </button>
+
+          <p
+            className="mt-5 text-[13px] text-[#3D2E2E]/40 tracking-[0.02em]"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+          >
+            Anonymous&ensp;•&ensp;2 minutes&ensp;•&ensp;Based on real data from
+            500+ women
+          </p>
         </div>
-      </motion.section>
-
-      {/* Value Props */}
-      <section className="relative z-10 px-6 py-20 md:py-28 lg:py-32">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-          className="max-w-5xl mx-auto"
-        >
-          <motion.p
-            custom={0}
-            variants={fadeIn}
-            className="text-xs uppercase tracking-[0.25em] mb-16 text-center opacity-40"
-          >
-            What you&apos;ll discover
-          </motion.p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16">
-            {[
-              {
-                icon: <BarChart3 className="w-6 h-6" />,
-                headline: "See Your Window",
-                text: "Visual timeline showing your fertility potential year by year",
-              },
-              {
-                icon: <AlertTriangle className="w-6 h-6" />,
-                headline: "Spot Red Flags",
-                text: "Compare your relationship timeline to 500+ women who faced this decision",
-              },
-              {
-                icon: <Lightbulb className="w-6 h-6" />,
-                headline: "Get Real Answers",
-                text: "No fake testimonials. Just research and data from women like you.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                custom={i + 1}
-                variants={fadeIn}
-                className="text-center md:text-left"
-              >
-                <div
-                  className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6"
-                  style={{
-                    backgroundColor: "rgba(224, 122, 95, 0.08)",
-                    color: "#E07A5F",
-                  }}
-                >
-                  {item.icon}
-                </div>
-                <h3
-                  className="text-xl mb-3"
-                  style={{
-                    fontFamily: "Cormorant Garamond, serif",
-                    fontWeight: 500,
-                    fontSize: "1.4rem",
-                  }}
-                >
-                  {item.headline}
-                </h3>
-                <p
-                    className="text-sm leading-relaxed mx-auto md:mx-0"
-                  style={{ color: "#7A7A7A", maxWidth: "280px" }}
-                >
-                  {item.text}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Decorative separator */}
-      <motion.div
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: [0.25, 0.4, 0.25, 1] }}
-        className="mx-auto w-16 h-px"
-        style={{ backgroundColor: "#E07A5F", opacity: 0.4 }}
-      />
-
-      {/* Bottom CTA Section */}
-      <section className="relative z-10 px-6 py-24 md:py-32 lg:py-40">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-          className="max-w-xl mx-auto text-center"
-        >
-          <motion.h2
-            custom={0}
-            variants={fadeIn}
-            className="text-3xl md:text-4xl lg:text-5xl mb-4 leading-tight"
-            style={{
-              fontFamily: "Cormorant Garamond, serif",
-              fontWeight: 400,
-            }}
-          >
-            Your timeline is ticking.
-          </motion.h2>
-          <motion.p
-            custom={1}
-            variants={fadeIn}
-            className="text-3xl md:text-4xl lg:text-5xl mb-10 leading-tight"
-            style={{
-              fontFamily: "Cormorant Garamond, serif",
-              fontWeight: 400,
-              fontStyle: "italic",
-              color: "#E07A5F",
-            }}
-          >
-            Know where you stand.
-          </motion.p>
-
-          <motion.div custom={2} variants={fadeIn}>
-            <Button
-              onClick={() => router.push("/quiz")}
-              className="rounded-full px-12 py-8 text-base tracking-wide transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                backgroundColor: "#E07A5F",
-                color: "#FAF8F5",
-                fontFamily: "-apple-system, sans-serif",
-                fontWeight: 400,
-                letterSpacing: "0.04em",
-                border: "none",
-                boxShadow: "0 4px 24px rgba(224, 122, 95, 0.25)",
-                fontSize: "1.05rem",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#C96A52";
-                e.currentTarget.style.boxShadow = "0 8px 40px rgba(224, 122, 95, 0.35)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#E07A5F";
-                e.currentTarget.style.boxShadow = "0 4px 24px rgba(224, 122, 95, 0.25)";
-              }}
-            >
-              Get Your Fertility Timeline
-            </Button>
-          </motion.div>
-
-          <motion.p
-            custom={3}
-            variants={fadeIn}
-            className="mt-5 text-sm opacity-40"
-          >
-            Takes 2 minutes · 100% anonymous
-          </motion.p>
-        </motion.div>
       </section>
 
       {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 px-6 py-12 md:py-16"
-        style={{
-          borderTop: "1px solid rgba(0,0,0,0.05)",
-        }}
-      >
-        <div className="max-w-3xl mx-auto">
-          <div className="flex flex-col items-center gap-6">
-            <p className="text-xs uppercase tracking-[0.2em] opacity-30">
-              Featured on
-            </p>
-            <div className="flex items-center gap-6">
-              {[
-                "r/relationships",
-                "r/TwoXChromosomes",
-                "r/relationship_advice",
-              ].map((sub) => (
-                <div
-                  key={sub}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full"
-                  style={{
-                    backgroundColor: "rgba(0,0,0,0.03)",
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="#FF4500"
-                    opacity={0.5}
-                  >
-                    <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
-                  </svg>
-                  <span className="text-xs opacity-40">{sub}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <span
-                className="text-lg tracking-wide opacity-30"
-                style={{
-                  fontFamily: "Cormorant Garamond, serif",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                }}
-              >
-                Claira
-              </span>
-              <p className="text-xs opacity-25">
-                © {new Date().getFullYear()} Claira. All rights reserved.
-              </p>
-            </div>
+      <footer className="border-t border-[#3D2E2E]/[0.06] px-6 md:px-12 lg:px-20 py-10 max-w-[1400px] mx-auto">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div
+            className="text-[20px] tracking-[0.04em] text-[#3D2E2E]/40"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          >
+            Claira
+          </div>
+          <div
+            className="flex items-center gap-6 text-[12px] text-[#3D2E2E]/30"
+            style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
+          >
+            <span>© 2025</span>
+            <span>Privacy</span>
+            <span>Terms</span>
           </div>
         </div>
-      </motion.footer>
-
-      {/* Google Fonts */}
-      <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap");
-
-        * {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-
-        ::selection {
-          background-color: rgba(224, 122, 95, 0.2);
-          color: #2c2c2c;
-        }
-
-        html {
-          scroll-behavior: smooth;
-        }
-
-        body {
-          overflow-x: hidden;
-        }
-      `}</style>
+      </footer>
     </div>
   );
 }
