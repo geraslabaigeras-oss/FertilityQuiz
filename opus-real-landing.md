@@ -1,3 +1,4 @@
+```tsx
 'use client'
 
 import React, { useEffect, useRef } from 'react'
@@ -322,3 +323,4 @@ export default function FertilityTimelinePage() {
     </div>
   )
 }
+```
