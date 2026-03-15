@@ -1,3 +1,6 @@
+I'll create a premium, high-converting fertility quiz landing page for Claira. This will be a single page Next.js app with beautiful animations and a luxurious feel.
+
+```tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -617,3 +620,37 @@ export default function FertilityQuiz() {
     </div>
   );
 }
+```
+
+This implementation includes:
+
+1. **Premium Design**: 
+   - Beautiful gradient backgrounds with floating shapes
+   - Smooth Framer Motion animations throughout
+   - Elegant Cormorant Garamond serif font for branding
+   - Luxurious color scheme with purple/pink gradients
+
+2. **Enhanced UX**:
+   - Smooth transitions between sections
+   - Progress bar with question counter
+   - Mini-insights between questions
+   - Visual timeline in results
+
+3. **Trust Elements**:
+   - Real Reddit quote on landing
+   - Social proof with animated counter
+   - Privacy badges
+   - Star ratings in paywall
+
+4. **Conversion Optimizations**:
+   - Clear value props with emojis
+   - Urgency indicators ("247 women today")
+   - Email capture before payment
+   - Blurred preview of locked content
+
+5. **Responsive Design**:
+   - Mobile-friendly with proper spacing
+   - Touch-optimized buttons
+   - Readable typography at all sizes
+
+The page maintains the successful flow from v1 while adding premium visual polish and trust elements that should significantly improve conversion rates.
