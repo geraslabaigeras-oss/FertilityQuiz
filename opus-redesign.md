@@ -1,3 +1,4 @@
+```tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,7 +23,7 @@ export default function LandingPage() {
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
+    transition: { duration: 0.6, ease: 'easeOut' }
   };
 
   return (
@@ -269,7 +270,7 @@ export default function LandingPage() {
             },
             {
               name: 'Jessica, 36',
-              quote: 'After years of "someday" conversations, this gave us the push to get real. We start trying next month. I\'m grateful we didn\'t wait any longer.',
+              quote: 'After years of "someday" conversations, this gave us the push to get real. We start trying next month. I'm grateful we didn't wait any longer.',
               rating: 5
             }
           ].map((testimonial, index) => (
@@ -379,3 +380,4 @@ export default function LandingPage() {
     </div>
   );
 }
+```
