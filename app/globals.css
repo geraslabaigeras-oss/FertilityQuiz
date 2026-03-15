@@ -127,3 +127,10 @@
     @apply font-sans;
   }
 }
+.font-serif {
+  font-family: var(--font-cormorant), serif;
+}
+
+.font-sans {
+  font-family: var(--font-dm-sans), sans-serif;
+}
