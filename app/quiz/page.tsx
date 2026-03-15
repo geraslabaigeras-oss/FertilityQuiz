@@ -1,202 +1,220 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { useRouter } from "next/navigation"
-import { TrendingUp } from "lucide-react"
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
-const questions = [
+interface Question {
+  id: number;
+  question: string;
+  options: string[];
+}
+
+interface Answer {
+  questionId: number;
+  answer: string;
+}
+
+const questions: Question[] = [
   {
     id: 1,
-    question: "How old are you?",
-    type: "number",
-    placeholder: "Enter your age"
+    question: "What's your preferred work environment?",
+    options: ["Remote", "Office", "Hybrid", "Flexible"]
   },
   {
     id: 2,
-    question: "What's your relationship status?",
-    type: "options",
-    options: ["Single", "Dating", "In a serious relationship", "Married"],
-    insight: {
-      text: "62% of women in serious relationships discuss family planning within 2 years",
-      icon: TrendingUp
-    }
+    question: "How do you handle stress?",
+    options: ["Exercise", "Meditation", "Talk to friends", "Take a break"]
   },
   {
     id: 3,
-    question: "How long have you been with your current partner?",
-    type: "options",
-    options: ["Less than 6 months", "6 months - 1 year", "1-2 years", "3-5 years", "More than 5 years"]
+    question: "What motivates you most?",
+    options: ["Recognition", "Money", "Growth", "Impact"]
   },
   {
     id: 4,
-    question: "Have you discussed having children with your partner?",
-    type: "options",
-    options: ["Not at all", "Mentioned briefly", "Had a few conversations", "Discussed seriously", "Have a clear plan"],
-    insight: {
-      text: "Partners who avoid this conversation for 3+ years: 73% less likely to have kids together",
-      icon: TrendingUp
-    }
+    question: "How do you prefer to learn?",
+    options: ["Reading", "Videos", "Hands-on", "Discussion"]
   },
   {
     id: 5,
-    question: "Does your partner want children?",
-    type: "options",
-    options: ["Definitely yes", "Probably yes", "Unsure", "Probably not", "Definitely not"]
+    question: "What's your ideal team size?",
+    options: ["Solo", "2-5 people", "6-10 people", "10+ people"]
   },
   {
     id: 6,
-    question: "On a scale of 1-10, how anxious are you about your fertility?",
-    type: "number",
-    placeholder: "Enter a number from 1-10"
+    question: "When are you most productive?",
+    options: ["Early morning", "Late morning", "Afternoon", "Evening"]
   },
   {
     id: 7,
-    question: "At what age did your mother have her first child?",
-    type: "options",
-    options: ["Under 25", "25-29", "30-34", "35-39", "40+", "Don't know"],
-    insight: {
-      text: "90% of women experience menopause within 5 years of their mother's age",
-      icon: TrendingUp
-    }
+    question: "How do you make decisions?",
+    options: ["Data-driven", "Intuition", "Consensus", "Expert advice"]
   },
   {
     id: 8,
-    question: "At what age did your mother go through menopause?",
-    type: "options",
-    options: ["Under 45", "45-49", "50-54", "55+", "Don't know"]
+    question: "What's your communication style?",
+    options: ["Direct", "Diplomatic", "Analytical", "Empathetic"]
   },
   {
     id: 9,
-    question: "Any fertility issues in your family?",
-    type: "options",
-    options: ["None that I know of", "Yes, minor issues", "Yes, significant issues", "Unsure"]
+    question: "How do you recharge?",
+    options: ["Alone time", "Social activities", "Nature", "Hobbies"]
   },
   {
     id: 10,
-    question: "What's your biggest concern right now?",
-    type: "options",
-    options: ["Finding the right partner", "Partner readiness", "Career timing", "Health/fertility", "Financial stability"]
+    question: "What's your planning style?",
+    options: ["Detailed plans", "Flexible outline", "Spontaneous", "Goal-oriented"]
   }
-]
+];
+
+const insights = {
+  2: "🧠 Understanding your stress management style is crucial for long-term success!",
+  4: "📚 Your learning preference shapes how you absorb and retain information!",
+  7: "🎯 Your decision-making style influences your leadership potential!"
+};
 
 export default function QuizPage() {
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string | number>>({})
-  const [showInsight, setShowInsight] = useState(false)
-  const router = useRouter()
+  const router = useRouter();
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [showInsight, setShowInsight] = useState(false);
+  const [insightText, setInsightText] = useState('');
 
-  const question = questions[currentQuestion]
-  const progress = ((currentQuestion + 1) / questions.length) * 100
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
-  const handleAnswer = (answer: string | number) => {
-    setAnswers({ ...answers, [question.id]: answer })
-    
-    // Show insight if available
-    if (question.insight) {
-      setShowInsight(true)
-      setTimeout(() => {
-        setShowInsight(false)
-        proceedToNext()
-      }, 3000)
-    } else {
-      proceedToNext()
+  useEffect(() => {
+    if (showInsight) {
+      const timer = setTimeout(() => {
+        setShowInsight(false);
+        if (currentQuestion < questions.length - 1) {
+          setCurrentQuestion(currentQuestion + 1);
+        } else {
+          completeQuiz();
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  }
+  }, [showInsight, currentQuestion]);
 
-  const proceedToNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
+  const handleAnswer = (answer: string) => {
+    const newAnswers = [...answers, { questionId: questions[currentQuestion].id, answer }];
+    setAnswers(newAnswers);
+
+    // Check if we need to show an insight
+    if ([2, 4, 7].includes(currentQuestion + 1)) {
+      setInsightText(insights[currentQuestion + 1 as keyof typeof insights]);
+      setShowInsight(true);
+    } else if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-      // Navigate to results
-      router.push(`/results?data=${encodeURIComponent(JSON.stringify(answers))}`)
+      completeQuiz();
     }
-  }
+  };
+
+  const completeQuiz = () => {
+    // Store answers in sessionStorage for the results page
+    sessionStorage.setItem('quizAnswers', JSON.stringify(answers));
+    router.push('/results');
+  };
+
+  const slideVariants = {
+    enter: { x: 300, opacity: 0 },
+    center: { x: 0, opacity: 1 },
+    exit: { x: -300, opacity: 0 }
+  };
+
+  const insightVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { duration: 0.3 }
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-serif text-purple-900" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-            Claira
-          </h1>
-          <span className="text-gray-600">Question {currentQuestion + 1} of {questions.length}</span>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-12">
-          <motion.div 
-            className="h-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-
-        {/* Question */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentQuestion}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-2xl mx-auto"
-          >
-            <Card className="bg-white/95 backdrop-blur p-8 shadow-xl">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">{question.question}</h2>
-              
-              {question.type === "number" ? (
-                <div className="space-y-4">
-                  <Input
-                    type="number"
-                    placeholder={question.placeholder}
-                    onChange={(e) => e.target.value && handleAnswer(parseInt(e.target.value))}
-                    className="text-lg p-6"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {question.options?.map((option) => (
-                    <motion.button
-                      key={option}
-                      onClick={() => handleAnswer(option)}
-                      className="w-full p-4 text-left rounded-lg border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {option}
-                    </motion.button>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Insight popup */}
-        <AnimatePresence>
-          {showInsight && question.insight && (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-2xl">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-white text-sm">Question {currentQuestion + 1} of {questions.length}</span>
+            <span className="text-white text-sm">{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full bg-purple-950/30 rounded-full h-3 overflow-hidden">
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-8 left-1/2 transform -translate-x-1/2"
+              className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {!showInsight ? (
+            <motion.div
+              key={currentQuestion}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl"
             >
-              <Card className="bg-purple-600 text-white p-6 shadow-2xl max-w-md">
-                <div className="flex items-start gap-3">
-                  <TrendingUp className="w-6 h-6 mt-1" />
-                  <p className="font-medium">{question.insight.text}</p>
-                </div>
-              </Card>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center">
+                {questions[currentQuestion].question}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {questions[currentQuestion].options.map((option, index) => (
+                  <motion.button
+                    key={option}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleAnswer(option)}
+                    className="bg-purple-600/50 hover:bg-purple-600/70 text-white font-medium py-4 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm border border-purple-400/30"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    {option}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="insight"
+              variants={insightVariants}
+              initial="hidden"
+              animate="visible"
+              className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-12 shadow-2xl border border-purple-400/30"
+            >
+              <div className="text-center">
+                <motion.div
+                  initial={{ rotate: -180, scale: 0 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="text-6xl mb-6"
+                >
+                  ✨
+                </motion.div>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Insight!</h3>
+                <p className="text-lg md:text-xl text-purple-100">{insightText}</p>
+                <motion.div
+                  className="mt-6 text-purple-300 text-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  Continuing automatically...
+                </motion.div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }

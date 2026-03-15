@@ -1,286 +1,379 @@
-"use client"
+'use client';
 
-import { useEffect, useState, Suspense } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { useSearchParams } from "next/navigation"
-import { CheckCircle2, Lock, Star } from "lucide-react"
+import React, { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { 
+  Calendar, 
+  Heart, 
+  TrendingUp, 
+  Lock, 
+  CheckCircle,
+  Sparkles,
+  ChevronRight,
+  Baby,
+  Moon,
+  Activity
+} from 'lucide-react';
 
+// Loading component
+function ResultsLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-purple-50">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Analyzing your cycle...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main Results Component
 function ResultsContent() {
-  const searchParams = useSearchParams()
-  const [answers, setAnswers] = useState<any>({})
-  const [email, setEmail] = useState("")
-  const [currentAge, setCurrentAge] = useState(28)
-
-  useEffect(() => {
-    const data = searchParams.get("data")
-    if (data) {
-      const parsed = JSON.parse(decodeURIComponent(data))
-      setAnswers(parsed)
-      setCurrentAge(parsed[1] || 28)
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  
+  // Extract data from search params
+  const cycleLength = parseInt(searchParams.get('cycleLength') || '28');
+  const lastPeriod = searchParams.get('lastPeriod') || new Date().toISOString().split('T')[0];
+  const periodLength = parseInt(searchParams.get('periodLength') || '5');
+  
+  // Calculate cycle phases
+  const ovulationDay = Math.floor(cycleLength / 2);
+  const fertileStart = ovulationDay - 5;
+  const fertileEnd = ovulationDay + 1;
+  
+  // Generate SVG points for fertility curve
+  const generateCurvePoints = () => {
+    const points = [];
+    const width = 600;
+    const height = 200;
+    
+    for (let day = 1; day <= cycleLength; day++) {
+      const x = (day / cycleLength) * width;
+      let y = height - 20;
+      
+      // Create fertility curve
+      if (day >= fertileStart && day <= fertileEnd) {
+        const relativeDay = day - fertileStart;
+        const range = fertileEnd - fertileStart;
+        const normalized = relativeDay / range;
+        y = height - (20 + Math.sin(normalized * Math.PI) * (height - 40));
+      }
+      
+      points.push(`${x},${y}`);
     }
-  }, [searchParams])
-
-  // Generate fertility timeline data
-  const timelineData = Array.from({ length: 25 }, (_, i) => {
-    const age = 25 + i
-    let fertility = 100
     
-    if (age <= 32) fertility = 100 - (age - 25) * 2
-    else if (age <= 35) fertility = 86 - (age - 32) * 5
-    else if (age <= 38) fertility = 71 - (age - 35) * 7
-    else fertility = Math.max(10, 50 - (age - 38) * 5)
+    return points.join(' ');
+  };
+  
+  // Timeline events
+  const timelineEvents = [
+    {
+      day: 1,
+      title: 'Menstruation Phase',
+      description: 'Your body is shedding the uterine lining',
+      icon: <Moon className="w-5 h-5" />,
+      color: 'red'
+    },
+    {
+      day: ovulationDay - 2,
+      title: 'Fertile Window Begins',
+      description: 'Optimal time for conception',
+      icon: <Heart className="w-5 h-5" />,
+      color: 'yellow'
+    },
+    {
+      day: ovulationDay,
+      title: 'Ovulation Day',
+      description: 'Egg is released from ovary',
+      icon: <Baby className="w-5 h-5" />,
+      color: 'green'
+    }
+  ];
+  
+  const handleUnlock = async () => {
+    if (!email) return;
     
-    return { age, fertility }
-  })
-
-  const currentFertility = timelineData.find(d => d.age === currentAge)?.fertility || 75
+    setIsUnlocking(true);
+    // Simulate payment processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // In real app, this would process payment and unlock content
+    console.log('Processing payment for:', email);
+    setIsUnlocking(false);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-3xl font-serif text-purple-900 mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-            Claira
-          </h1>
-          <h2 className="text-2xl text-gray-700">Your Fertility Timeline</h2>
-        </motion.div>
-
-        {/* Free Preview Section */}
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-4xl mx-auto mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-10"
         >
-          <Card className="bg-white/95 backdrop-blur p-8 shadow-xl">
-            {/* Visual Timeline */}
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">Your Fertility Potential Over Time</h3>
-              <div className="relative h-64 bg-gray-50 rounded-lg p-4">
-                <svg className="w-full h-full" viewBox="0 0 600 200">
-                  {/* Grid lines */}
-                  {[0, 25, 50, 75, 100].map(y => (
-                    <line
-                      key={y}
-                      x1="50"
-                      y1={200 - y * 2}
-                      x2="550"
-                      y2={200 - y * 2}
-                      stroke="#e5e7eb"
-                      strokeDasharray="2 2"
-                    />
-                  ))}
-                  
-                  {/* Fertility curve */}
-                  <path
-                    d={`M ${timelineData.map((d, i) => `${50 + i * 20},${200 - d.fertility * 2}`).join(' L ')}`}
-                    fill="none"
-                    stroke="#9333ea"
-                    strokeWidth="3"
-                  />
-                  
-                  {/* Fill areas */}
-                  <path
-                    d={`M 50,200 ${timelineData.slice(0, 8).map((d, i) => `L ${50 + i * 20},${200 - d.fertility * 2}`).join(' ')} L 210,200 Z`}
-                    fill="#10b981"
-                    fillOpacity="0.2"
-                  />
-                  <path
-                    d={`M 210,200 ${timelineData.slice(8, 14).map((d, i) => `L ${210 + i * 20},${200 - d.fertility * 2}`).join(' ')} L 330,200 Z`}
-                    fill="#eab308"
-                    fillOpacity="0.2"
-                  />
-                  <path
-                    d={`M 330,200 ${timelineData.slice(14).map((d, i) => `L ${330 + i * 20},${200 - d.fertility * 2}`).join(' ')} L 550,200 Z`}
-                    fill="#ef4444"
-                    fillOpacity="0.2"
-                  />
-                  
-                  {/* Current age indicator */}
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            Your Fertility Analysis
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Based on your {cycleLength}-day cycle, we've mapped out your fertility patterns and key dates
+          </p>
+        </motion.div>
+
+        {/* Fertility Curve Chart */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white rounded-2xl shadow-xl p-6 mb-8"
+        >
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+            <Activity className="w-6 h-6 text-purple-600" />
+            Fertility Curve
+          </h2>
+          
+          <div className="relative overflow-x-auto">
+            <svg 
+              viewBox="0 0 600 250" 
+              className="w-full h-64"
+              preserveAspectRatio="none"
+            >
+              {/* Background zones */}
+              <defs>
+                <linearGradient id="fertileGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.1" />
+                </linearGradient>
+              </defs>
+              
+              {/* Red zone - Menstruation */}
+              <rect 
+                x="0" 
+                y="0" 
+                width={(periodLength / cycleLength) * 600} 
+                height="200"
+                fill="#ef4444"
+                opacity="0.1"
+              />
+              
+              {/* Yellow zone - Pre-fertile */}
+              <rect 
+                x={(fertileStart / cycleLength) * 600 - 40} 
+                y="0" 
+                width="40" 
+                height="200"
+                fill="#f59e0b"
+                opacity="0.1"
+              />
+              
+              {/* Green zone - Fertile window */}
+              <rect 
+                x={(fertileStart / cycleLength) * 600} 
+                y="0" 
+                width={((fertileEnd - fertileStart) / cycleLength) * 600} 
+                height="200"
+                fill="url(#fertileGradient)"
+              />
+              
+              {/* Fertility curve */}
+              <polyline
+                points={generateCurvePoints()}
+                fill="none"
+                stroke="#8b5cf6"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              
+              {/* Day markers */}
+              {[1, ovulationDay, cycleLength].map(day => (
+                <g key={day}>
                   <line
-                    x1={50 + (currentAge - 25) * 20}
-                    y1="0"
-                    x2={50 + (currentAge - 25) * 20}
-                    y2="200"
-                    stroke="#ef4444"
+                    x1={(day / cycleLength) * 600}
+                    y1="200"
+                    x2={(day / cycleLength) * 600}
+                    y2="210"
+                    stroke="#9ca3af"
                     strokeWidth="2"
-                    strokeDasharray="5 5"
                   />
                   <text
-                    x={50 + (currentAge - 25) * 20}
-                    y="20"
+                    x={(day / cycleLength) * 600}
+                    y="230"
                     textAnchor="middle"
-                    className="fill-red-600 text-sm font-semibold"
+                    className="fill-gray-600 text-sm"
                   >
-                    You are here
+                    Day {day}
                   </text>
-                  
-                  {/* Age labels */}
-                  {[25, 30, 35, 40, 45].map((age, i) => (
-                    <text
-                      key={age}
-                      x={50 + i * 100}
-                      y="220"
-                      textAnchor="middle"
-                      className="fill-gray-600 text-sm"
-                    >
-                      {age}
-                    </text>
-                  ))}
-                </svg>
+                </g>
+              ))}
+            </svg>
+            
+            <div className="flex justify-center gap-6 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-400 rounded"></div>
+                <span className="text-sm text-gray-600">Menstruation</span>
               </div>
-              
-              {/* Legend */}
-              <div className="flex justify-center gap-6 mt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-500 rounded"></div>
-                  <span className="text-sm">Optimal (80%+)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                  <span className="text-sm">Good (60-79%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-500 rounded"></div>
-                  <span className="text-sm">Declining (&lt;60%)</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                <span className="text-sm text-gray-600">Pre-fertile</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-400 rounded"></div>
+                <span className="text-sm text-gray-600">Fertile Window</span>
               </div>
             </div>
+          </div>
+        </motion.div>
 
-            {/* Timeline breakdown */}
-            <div className="grid md:grid-cols-3 gap-4 mb-8">
-              <Card className="p-4 bg-green-50 border-green-200">
-                <h4 className="font-semibold text-green-800 mb-1">Optimal Window</h4>
-                <p className="text-sm text-green-700">Ages {currentAge < 35 ? currentAge : "25"}-35</p>
-                <p className="text-xs text-green-600 mt-1">80%+ conception rate</p>
-              </Card>
-              <Card className="p-4 bg-yellow-50 border-yellow-200">
-                <h4 className="font-semibold text-yellow-800 mb-1">Good Window</h4>
-                <p className="text-sm text-yellow-700">Ages 36-38</p>
-                <p className="text-xs text-yellow-600 mt-1">60-79% conception rate</p>
-              </Card>
-              <Card className="p-4 bg-red-50 border-red-200">
-                <h4 className="font-semibold text-red-800 mb-1">Declining Window</h4>
-                <p className="text-sm text-red-700">Ages 39-42</p>
-                <p className="text-xs text-red-600 mt-1">30-59% conception rate</p>
-              </Card>
-            </div>
-
-            {/* Sample insight */}
-            <Card className="p-6 bg-purple-50 border-purple-200">
-              <p className="text-purple-900">
-                Based on your answers: Women in serious relationships who haven't discussed children by year 3 
-                are <span className="font-bold">73% less likely</span> to have them with their current partner.
+        {/* Timeline Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          {timelineEvents.map((event, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+              className={`bg-white rounded-xl shadow-lg p-6 border-t-4 border-${event.color}-500`}
+            >
+              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-${event.color}-100 text-${event.color}-600 mb-4`}>
+                {event.icon}
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                {event.title}
+              </h3>
+              <p className="text-gray-600 text-sm mb-3">
+                {event.description}
               </p>
-            </Card>
-          </Card>
+              <div className="flex items-center text-sm text-gray-500">
+                <Calendar className="w-4 h-4 mr-1" />
+                Day {event.day}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Insights Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-xl p-8 text-white mb-8"
+        >
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Sparkles className="w-6 h-6" />
+            Key Insights
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold mb-2">Your Fertile Window</h3>
+              <p className="text-purple-100">
+                Days {fertileStart} to {fertileEnd} of your cycle offer the highest chance of conception
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Next Period Date</h3>
+              <p className="text-purple-100">
+                Expected to start on {new Date(new Date(lastPeriod).getTime() + cycleLength * 24 * 60 * 60 * 1000).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Paywall Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-2xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.7 }}
+          className="relative"
         >
-          <Card className="bg-white/95 backdrop-blur p-8 shadow-xl border-purple-200">
-            <div className="text-center mb-6">
-              <Lock className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-              <h3 className="text-2xl font-semibold text-gray-900">
-                🔒 Unlock Your Full Personalized Report
-              </h3>
-            </div>
-
-            {/* What's included */}
-            <div className="space-y-3 mb-8">
-              {[
-                "How your relationship compares to 500+ women",
-                "Red flags in your situation",
-                "Exact action plan with dates",
-                "Stories from women who waited vs didn't",
-                "Fertility clinic recommendations",
-                "Egg freezing calculator"
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-gray-700">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Blurred preview */}
-            <div className="relative mb-8">
-              <Card className="p-6 blur-sm">
-                <h4 className="font-semibold mb-2">Your Relationship Red Flags</h4>
-                <p className="text-gray-600">
-                  Based on your answers, we've identified 3 critical red flags that could impact...
-                </p>
-              </Card>
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 font-semibold">Unlock to read</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-white/80 backdrop-blur-sm z-10 rounded-2xl"></div>
+          
+          {/* Blurred Preview */}
+          <div className="filter blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                Personalized Recommendations
+              </h2>
+              <div className="space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
               </div>
             </div>
+          </div>
 
-            {/* Email and pricing */}
-            <div className="space-y-4">
-              <Input
+          {/* Unlock Content */}
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Unlock Full Analysis
+                </h3>
+                <p className="text-gray-600">
+                  Get personalized recommendations, detailed predictions, and expert insights
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {['Personalized fertility tips', 'Monthly cycle predictions', 'Health recommendations'].map((feature, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-gray-400 line-through text-xl">$49.99</span>
+                  <span className="text-3xl font-bold text-gray-800">$29.99</span>
+                </div>
+                <p className="text-sm text-green-600 font-medium">
+                  Limited time offer - Save 40%!
+                </p>
+              </div>
+
+              <input
                 type="email"
-                placeholder="Enter email to unlock"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="text-lg p-6"
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 mb-4"
               />
-              
-              <div className="text-center">
-                <div className="mb-2">
-                  <span className="text-gray-500 line-through text-lg">$49.99</span>
-                  <span className="text-3xl font-bold text-purple-600 ml-3">$29.99</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">One-time payment • Instant access</p>
-              </div>
 
-              <Button
-                size="lg"
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-6 text-lg font-semibold"
-                disabled={!email}
+              <button
+                onClick={handleUnlock}
+                disabled={isUnlocking || !email}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 rounded-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                UNLOCK MY FULL REPORT - $29.99
-              </Button>
+                {isUnlocking ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Unlock Now
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
             </div>
-
-            {/* Social proof */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">247 women unlocked today</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600">4.9/5 (1,847 reviews)</span>
-                </div>
-              </div>
-            </div>
-          </Card>
+          </div>
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
 
+// Main export with Suspense
 export default function ResultsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<ResultsLoading />}>
       <ResultsContent />
     </Suspense>
-  )
+  );
 }
