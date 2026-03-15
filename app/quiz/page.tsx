@@ -1,360 +1,202 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import QuizProgress from '@/components/QuizProgress';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { calculateFertilityTimeline, type QuizAnswers } from '@/lib/quizLogic';
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
+import { TrendingUp } from "lucide-react"
 
 const questions = [
   {
-    id: 'age',
-    type: 'number',
-    question: 'How old are you?',
-    subtext: 'Your current age helps us understand your fertility window',
-    min: 18,
-    max: 50,
+    id: 1,
+    question: "How old are you?",
+    type: "number",
+    placeholder: "Enter your age"
   },
   {
-    id: 'relationshipStatus',
-    type: 'radio',
-    question: 'What\'s your current relationship status?',
-    subtext: 'This helps us tailor your timeline',
-    options: [
-      { value: 'single', label: 'Single' },
-      { value: 'dating', label: 'Dating' },
-      { value: 'committed', label: 'In a committed relationship' },
-      { value: 'engaged', label: 'Engaged' },
-      { value: 'married', label: 'Married' },
-    ],
+    id: 2,
+    question: "What's your relationship status?",
+    type: "options",
+    options: ["Single", "Dating", "In a serious relationship", "Married"],
+    insight: {
+      text: "62% of women in serious relationships discuss family planning within 2 years",
+      icon: TrendingUp
+    }
   },
   {
-    id: 'relationshipLength',
-    type: 'number',
-    question: 'How long have you been together?',
-    subtext: 'Enter in years (use decimals for months, e.g., 0.5 for 6 months)',
-    min: 0,
-    max: 30,
-    conditional: (answers: Partial<QuizAnswers>) => 
-      answers.relationshipStatus !== 'single',
+    id: 3,
+    question: "How long have you been with your current partner?",
+    type: "options",
+    options: ["Less than 6 months", "6 months - 1 year", "1-2 years", "3-5 years", "More than 5 years"]
   },
   {
-    id: 'discussedKids',
-    type: 'radio',
-    question: 'Have you discussed having kids with your partner?',
-    options: [
-      { value: 'yes', label: 'Yes, we\'ve talked about it' },
-      { value: 'no', label: 'No, not yet' },
-      { value: 'na', label: 'Not applicable' },
-    ],
-    conditional: (answers: Partial<QuizAnswers>) => 
-      answers.relationshipStatus !== 'single',
+    id: 4,
+    question: "Have you discussed having children with your partner?",
+    type: "options",
+    options: ["Not at all", "Mentioned briefly", "Had a few conversations", "Discussed seriously", "Have a clear plan"],
+    insight: {
+      text: "Partners who avoid this conversation for 3+ years: 73% less likely to have kids together",
+      icon: TrendingUp
+    }
   },
   {
-    id: 'partnerWantsKids',
-    type: 'radio',
-    question: 'Does your partner want kids?',
-    options: [
-      { value: 'yes', label: 'Yes, definitely' },
-      { value: 'no', label: 'No, they don\'t' },
-      { value: 'unsure', label: 'They\'re unsure' },
-      { value: 'na', label: 'Not applicable' },
-    ],
-    conditional: (answers: Partial<QuizAnswers>) => 
-      answers.relationshipStatus !== 'single',
+    id: 5,
+    question: "Does your partner want children?",
+    type: "options",
+    options: ["Definitely yes", "Probably yes", "Unsure", "Probably not", "Definitely not"]
   },
   {
-    id: 'anxietyLevel',
-    type: 'slider',
-    question: 'How anxious are you about your fertility timeline?',
-    subtext: '1 = Not at all, 10 = Extremely anxious',
-    min: 1,
-    max: 10,
+    id: 6,
+    question: "On a scale of 1-10, how anxious are you about your fertility?",
+    type: "number",
+    placeholder: "Enter a number from 1-10"
   },
   {
-    id: 'motherFirstChildAge',
-    type: 'number',
-    question: 'How old was your mother when she had her first child?',
-    subtext: 'Family history is a strong predictor of fertility patterns',
-    min: 15,
-    max: 50,
+    id: 7,
+    question: "At what age did your mother have her first child?",
+    type: "options",
+    options: ["Under 25", "25-29", "30-34", "35-39", "40+", "Don't know"],
+    insight: {
+      text: "90% of women experience menopause within 5 years of their mother's age",
+      icon: TrendingUp
+    }
   },
   {
-    id: 'motherMenopauseAge',
-    type: 'number',
-    question: 'At what age did your mother experience menopause?',
-    subtext: 'This is 90% accurate in predicting your own timeline',
-    min: 35,
-    max: 65,
+    id: 8,
+    question: "At what age did your mother go through menopause?",
+    type: "options",
+    options: ["Under 45", "45-49", "50-54", "55+", "Don't know"]
   },
   {
-    id: 'familyFertilityIssues',
-    type: 'radio',
-    question: 'Are there any known fertility issues in your family?',
-    subtext: 'Including PCOS, endometriosis, early menopause, etc.',
-    options: [
-      { value: 'yes', label: 'Yes' },
-      { value: 'no', label: 'No' },
-      { value: 'unsure', label: 'I\'m not sure' },
-    ],
+    id: 9,
+    question: "Any fertility issues in your family?",
+    type: "options",
+    options: ["None that I know of", "Yes, minor issues", "Yes, significant issues", "Unsure"]
   },
   {
-    id: 'biggestConcern',
-    type: 'radio',
-    question: 'What\'s your biggest concern right now?',
-    options: [
-      { value: 'time', label: 'Running out of time' },
-      { value: 'partner', label: 'Partner not being ready' },
-      { value: 'career', label: 'Career priorities' },
-      { value: 'financial', label: 'Financial stability' },
-      { value: 'unsure', label: 'Not sure if I want kids' },
-    ],
-  },
-];
-
-const insights = [
-  {
-    afterQuestion: 3,
-    title: 'Did you know?',
-    content: 'Women who discuss kids by year 2 of their relationship have an 82% chance of getting married within 5 years.',
-    icon: '💍',
-  },
-  {
-    afterQuestion: 6,
-    title: 'Fertility fact',
-    content: 'Your fertility peaks at 32 and drops by 35% after age 35. But remember, every woman\'s journey is unique!',
-    icon: '📊',
-  },
-  {
-    afterQuestion: 8,
-    title: 'Genetic insight',
-    content: '90% of women experience menopause within 5 years of their mother\'s age - making it our most accurate predictor.',
-    icon: '🧬',
-  },
-];
+    id: 10,
+    question: "What's your biggest concern right now?",
+    type: "options",
+    options: ["Finding the right partner", "Partner readiness", "Career timing", "Health/fertility", "Financial stability"]
+  }
+]
 
 export default function QuizPage() {
-  const router = useRouter();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Partial<QuizAnswers>>({});
-  const [showInsight, setShowInsight] = useState(false);
-  const [error, setError] = useState('');
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [answers, setAnswers] = useState<Record<number, string | number>>({})
+  const [showInsight, setShowInsight] = useState(false)
+  const router = useRouter()
 
-  const activeQuestions = questions.filter(q => 
-    !q.conditional || q.conditional(answers)
-  );
+  const question = questions[currentQuestion]
+  const progress = ((currentQuestion + 1) / questions.length) * 100
 
-  const currentQ = activeQuestions[currentQuestion];
-  const progress = ((currentQuestion + 1) / activeQuestions.length) * 100;
-
-  const currentInsight = insights.find(i => 
-    i.afterQuestion === currentQuestion && !showInsight
-  );
-
-  const handleAnswer = (value: any) => {
-    setAnswers(prev => ({ ...prev, [currentQ.id as keyof QuizAnswers]: value }));
-    setError('');
-  };
-
-  const validateAnswer = () => {
-    const value = answers[currentQ.id as keyof QuizAnswers];
+  const handleAnswer = (answer: string | number) => {
+    setAnswers({ ...answers, [question.id]: answer })
     
-    if (value === undefined || value === null) {
-      setError('Please provide an answer to continue');
-      return false;
-    }
-
-    if (currentQ.type === 'number') {
-      const num = Number(value);
-      if (isNaN(num) || num < currentQ.min! || num > currentQ.max!) {
-        setError(`Please enter a number between ${currentQ.min} and ${currentQ.max}`);
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  const handleNext = () => {
-    if (!validateAnswer()) return;
-
-    if (currentInsight && !showInsight) {
-      setShowInsight(true);
-      return;
-    }
-
-    if (currentQuestion < activeQuestions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-      setShowInsight(false);
+    // Show insight if available
+    if (question.insight) {
+      setShowInsight(true)
+      setTimeout(() => {
+        setShowInsight(false)
+        proceedToNext()
+      }, 3000)
     } else {
-      // Quiz complete, navigate to results
-      const results = calculateFertilityTimeline(answers as QuizAnswers);
-      router.push(`/results?data=${encodeURIComponent(JSON.stringify(results))}`);
+      proceedToNext()
     }
-  };
+  }
 
-  const handleBack = () => {
-    if (showInsight) {
-      setShowInsight(false);
-    } else if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
-      setError('');
+  const proceedToNext = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+    } else {
+      // Navigate to results
+      router.push(`/results?data=${encodeURIComponent(JSON.stringify(answers))}`)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col">
-      <QuizProgress progress={progress} currentQuestion={currentQuestion + 1} totalQuestions={activeQuestions.length} />
-      
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-2xl">
-          <AnimatePresence mode="wait">
-            {showInsight && currentInsight ? (
-              <motion.div
-                key="insight"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="text-center space-y-6"
-              >
-                <div className="text-6xl mb-4">{currentInsight.icon}</div>
-                <h2 className="text-3xl font-bold text-rose-400">
-                  {currentInsight.title}
-                </h2>
-                <p className="text-xl text-zinc-300 max-w-md mx-auto">
-                  {currentInsight.content}
-                </p>
-                <Button
-                  onClick={handleNext}
-                  size="lg"
-                  className="mt-8 bg-rose-500 hover:bg-rose-600 text-white px-8"
-                >
-                  Continue <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key={currentQuestion}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-8"
-              >
-                <div className="text-center space-y-4">
-                  <h2 className="text-3xl md:text-4xl font-bold">
-                    {currentQ.question}
-                  </h2>
-                  {currentQ.subtext && (
-                    <p className="text-zinc-400 text-lg">{currentQ.subtext}</p>
-                  )}
-                </div>
-
-                <div className="space-y-6">
-                  {currentQ.type === 'number' && (
-                    <div className="max-w-xs mx-auto">
-                      <Input
-                        type="number"
-                        min={currentQ.min}
-                        max={currentQ.max}
-                        value={answers[currentQ.id as keyof QuizAnswers] as string || ''}
-                        onChange={(e) => handleAnswer(e.target.value)}
-                        className="bg-zinc-900 border-zinc-800 text-zinc-50 text-center text-2xl h-16"
-                        placeholder="Enter a number"
-                      />
-                    </div>
-                  )}
-
-                  {currentQ.type === 'radio' && (
-                    <RadioGroup
-                      value={answers[currentQ.id as keyof QuizAnswers] as string || ''}
-                      onValueChange={handleAnswer}
-                      className="space-y-3 max-w-md mx-auto"
-                    >
-                      {currentQ.options!.map((option) => (
-                        <div
-                          key={option.value}
-                          className="flex items-center space-x-3 p-4 rounded-lg border border-zinc-800 hover:border-rose-500 transition-colors cursor-pointer"
-                        >
-                          <RadioGroupItem
-                            value={option.value}
-                            id={option.value}
-                            className="border-zinc-600 text-rose-500"
-                          />
-                          <Label
-                            htmlFor={option.value}
-                            className="text-lg cursor-pointer flex-1"
-                          >
-                            {option.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  )}
-
-                  {currentQ.type === 'slider' && (
-                    <div className="max-w-md mx-auto space-y-4">
-                      <div className="flex justify-between text-sm text-zinc-400">
-                        <span>{currentQ.min}</span>
-                        <span className="text-2xl font-bold text-rose-400">
-                          {answers[currentQ.id as keyof QuizAnswers] as number || 5}
-                        </span>
-                        <span>{currentQ.max}</span>
-                      </div>
-                      <Slider
-                        value={[(answers[currentQ.id as keyof QuizAnswers] as number) || 5]}
-                        onValueChange={(value) => handleAnswer(Array.isArray(value) ? value[0] : value)}
-                        min={currentQ.min}
-                        max={currentQ.max}
-                        step={1}
-                        className="[&_[role=slider]]:bg-rose-500"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-red-400 text-center"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-
-                <div className="flex justify-between items-center pt-8">
-                  <Button
-                    onClick={handleBack}
-                    variant="ghost"
-                    size="lg"
-                    disabled={currentQuestion === 0}
-                    className="text-zinc-400 hover:text-zinc-50"
-                  >
-                    <ChevronLeft className="mr-2 h-5 w-5" />
-                    Back
-                  </Button>
-
-                  <Button
-                    onClick={handleNext}
-                    size="lg"
-                    className="bg-rose-500 hover:bg-rose-600 text-white px-8"
-                  >
-                    {currentQuestion === activeQuestions.length - 1 ? 'See Results' : 'Next'}
-                    <ChevronRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-serif text-purple-900" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            Claira
+          </h1>
+          <span className="text-gray-600">Question {currentQuestion + 1} of {questions.length}</span>
         </div>
+
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-3 mb-12">
+          <motion.div 
+            className="h-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+
+        {/* Question */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestion}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="max-w-2xl mx-auto"
+          >
+            <Card className="bg-white/95 backdrop-blur p-8 shadow-xl">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">{question.question}</h2>
+              
+              {question.type === "number" ? (
+                <div className="space-y-4">
+                  <Input
+                    type="number"
+                    placeholder={question.placeholder}
+                    onChange={(e) => e.target.value && handleAnswer(parseInt(e.target.value))}
+                    className="text-lg p-6"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {question.options?.map((option) => (
+                    <motion.button
+                      key={option}
+                      onClick={() => handleAnswer(option)}
+                      className="w-full p-4 text-left rounded-lg border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {option}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Insight popup */}
+        <AnimatePresence>
+          {showInsight && question.insight && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-8 left-1/2 transform -translate-x-1/2"
+            >
+              <Card className="bg-purple-600 text-white p-6 shadow-2xl max-w-md">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="w-6 h-6 mt-1" />
+                  <p className="font-medium">{question.insight.text}</p>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
-  );
+  )
 }

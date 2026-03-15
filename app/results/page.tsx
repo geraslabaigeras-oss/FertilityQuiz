@@ -1,272 +1,286 @@
-'use client';
+"use client"
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { AlertCircle, TrendingDown, Calendar, Heart, Lock } from 'lucide-react';
-import { type FertilityResults } from '@/lib/quizLogic';
+import { useEffect, useState, Suspense } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useSearchParams } from "next/navigation"
+import { CheckCircle2, Lock, Star } from "lucide-react"
 
 function ResultsContent() {
-  const searchParams = useSearchParams();
-  const resultsData = searchParams.get('data');
-  
-  if (!resultsData) {
-    return <div>No results found</div>;
-  }
+  const searchParams = useSearchParams()
+  const [answers, setAnswers] = useState<any>({})
+  const [email, setEmail] = useState("")
+  const [currentAge, setCurrentAge] = useState(28)
 
-  const results: FertilityResults = JSON.parse(decodeURIComponent(resultsData));
+  useEffect(() => {
+    const data = searchParams.get("data")
+    if (data) {
+      const parsed = JSON.parse(decodeURIComponent(data))
+      setAnswers(parsed)
+      setCurrentAge(parsed[1] || 28)
+    }
+  }, [searchParams])
 
-  const TimelineVisualization = () => {
-    const currentAge = results.currentAge;
-    const timelineYears = 20;
-    const startAge = Math.max(18, currentAge - 5);
-    const endAge = startAge + timelineYears;
+  // Generate fertility timeline data
+  const timelineData = Array.from({ length: 25 }, (_, i) => {
+    const age = 25 + i
+    let fertility = 100
+    
+    if (age <= 32) fertility = 100 - (age - 25) * 2
+    else if (age <= 35) fertility = 86 - (age - 32) * 5
+    else if (age <= 38) fertility = 71 - (age - 35) * 7
+    else fertility = Math.max(10, 50 - (age - 38) * 5)
+    
+    return { age, fertility }
+  })
 
-    return (
-      <div className="relative">
-        <div className="flex justify-between text-sm text-zinc-400 mb-2">
-          <span>{startAge}</span>
-          <span className="text-rose-400 font-bold">Current: {currentAge}</span>
-          <span>{endAge}</span>
-        </div>
-        
-        <div className="relative h-16 bg-zinc-900 rounded-lg overflow-hidden">
-          {/* Peak fertility zone */}
-          <div
-            className="absolute top-0 h-full bg-emerald-500/20"
-            style={{
-              left: `${((Math.max(startAge, 25) - startAge) / timelineYears) * 100}%`,
-              width: `${((Math.min(32, endAge) - Math.max(startAge, 25)) / timelineYears) * 100}%`,
-            }}
-          />
-          
-          {/* Declining fertility zone */}
-          <div
-            className="absolute top-0 h-full bg-amber-500/20"
-            style={{
-              left: `${((Math.max(startAge, 32) - startAge) / timelineYears) * 100}%`,
-              width: `${((Math.min(results.fertilityDeclineAge, endAge) - Math.max(startAge, 32)) / timelineYears) * 100}%`,
-            }}
-          />
-          
-          {/* Rapid decline zone */}
-          <div
-            className="absolute top-0 h-full bg-red-500/20"
-            style={{
-              left: `${((Math.max(startAge, results.fertilityDeclineAge) - startAge) / timelineYears) * 100}%`,
-              width: `${((Math.min(results.estimatedMenopauseAge, endAge) - Math.max(startAge, results.fertilityDeclineAge)) / timelineYears) * 100}%`,
-            }}
-          />
-          
-          {/* Current age marker */}
-          <div
-            className="absolute top-0 h-full w-1 bg-rose-500"
-            style={{
-              left: `${((currentAge - startAge) / timelineYears) * 100}%`,
-            }}
-          >
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold text-rose-400 whitespace-nowrap">
-              You are here
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-between mt-4 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-emerald-500 rounded" />
-            <span>Peak Fertility</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-amber-500 rounded" />
-            <span>Declining</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded" />
-            <span>Rapid Decline</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const currentFertility = timelineData.find(d => d.age === currentAge)?.fertility || 75
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 px-4 py-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold">
-            Your Personalized Fertility Timeline
+          <h1 className="text-3xl font-serif text-purple-900 mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            Claira
           </h1>
-          <p className="text-xl text-zinc-400">
-            Based on your unique genetic and lifestyle factors
-          </p>
+          <h2 className="text-2xl text-gray-700">Your Fertility Timeline</h2>
         </motion.div>
 
+        {/* Free Preview Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="max-w-4xl mx-auto mb-12"
         >
-          <Card className="bg-zinc-900 border-zinc-800 p-6 space-y-6">
-            <h2 className="text-2xl font-bold text-rose-400">Your Timeline</h2>
-            <TimelineVisualization />
-            
-            <div className="grid md:grid-cols-3 gap-4 pt-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-400">
-                  {results.yearsUntilDecline}
-                </div>
-                <p className="text-sm text-zinc-400">Years until fertility decline</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-amber-400">
-                  {results.fertilityDeclineAge}
-                </div>
-                <p className="text-sm text-zinc-400">Predicted decline age</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-red-400">
-                  {results.estimatedMenopauseAge}
-                </div>
-                <p className="text-sm text-zinc-400">Estimated menopause</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {results.redFlags.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card className="bg-red-950/20 border-red-900/50 p-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-6 w-6 text-red-400" />
-                <h2 className="text-2xl font-bold text-red-400">Important Considerations</h2>
-              </div>
-              <ul className="space-y-3">
-                {results.redFlags.map((flag, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <TrendingDown className="h-5 w-5 text-red-400 mt-0.5" />
-                    <span>{flag}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          </motion.div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="grid md:grid-cols-2 gap-6"
-        >
-          <Card className="bg-zinc-900 border-zinc-800 p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <Heart className="h-6 w-6 text-rose-400" />
-              <h3 className="text-xl font-bold">How You Compare</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm">Women your age with kids</span>
-                  <span className="text-sm font-bold">{results.peerComparison.withKids}%</span>
-                </div>
-                <Progress value={results.peerComparison.withKids} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm">Planning within 2 years</span>
-                  <span className="text-sm font-bold">{results.peerComparison.planningKids}%</span>
-                </div>
-                <Progress value={results.peerComparison.planningKids} className="h-2" />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-zinc-900 border-zinc-800 p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-6 w-6 text-rose-400" />
-              <h3 className="text-xl font-bold">Recommended Actions</h3>
-            </div>
-            <ul className="space-y-2 text-sm">
-              {results.recommendations.map((rec, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 bg-rose-400 rounded-full mt-1.5" />
-                  <span>{rec}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="relative"
-        >
-          <Card className="bg-gradient-to-br from-rose-950/30 to-zinc-900 border-rose-900/50 p-8 text-center space-y-6 overflow-hidden">
-            <div className="absolute top-4 right-4">
-              <Lock className="h-8 w-8 text-rose-400/50" />
-            </div>
-            
-            <h2 className="text-3xl font-bold">Get Your Complete Fertility Report</h2>
-            <p className="text-lg text-zinc-300 max-w-2xl mx-auto">
-              Unlock personalized strategies, month-by-month action plans, and expert guidance tailored to your unique situation
-            </p>
-            
-            <div className="space-y-4">
-              <div className="text-4xl font-bold text-rose-400">
-                $29.99
-                <span className="text-lg font-normal text-zinc-400 line-through ml-2">$49.99</span>
+          <Card className="bg-white/95 backdrop-blur p-8 shadow-xl">
+            {/* Visual Timeline */}
+            <div className="mb-8">
+              <h3 className="text-xl font-semibold mb-4">Your Fertility Potential Over Time</h3>
+              <div className="relative h-64 bg-gray-50 rounded-lg p-4">
+                <svg className="w-full h-full" viewBox="0 0 600 200">
+                  {/* Grid lines */}
+                  {[0, 25, 50, 75, 100].map(y => (
+                    <line
+                      key={y}
+                      x1="50"
+                      y1={200 - y * 2}
+                      x2="550"
+                      y2={200 - y * 2}
+                      stroke="#e5e7eb"
+                      strokeDasharray="2 2"
+                    />
+                  ))}
+                  
+                  {/* Fertility curve */}
+                  <path
+                    d={`M ${timelineData.map((d, i) => `${50 + i * 20},${200 - d.fertility * 2}`).join(' L ')}`}
+                    fill="none"
+                    stroke="#9333ea"
+                    strokeWidth="3"
+                  />
+                  
+                  {/* Fill areas */}
+                  <path
+                    d={`M 50,200 ${timelineData.slice(0, 8).map((d, i) => `L ${50 + i * 20},${200 - d.fertility * 2}`).join(' ')} L 210,200 Z`}
+                    fill="#10b981"
+                    fillOpacity="0.2"
+                  />
+                  <path
+                    d={`M 210,200 ${timelineData.slice(8, 14).map((d, i) => `L ${210 + i * 20},${200 - d.fertility * 2}`).join(' ')} L 330,200 Z`}
+                    fill="#eab308"
+                    fillOpacity="0.2"
+                  />
+                  <path
+                    d={`M 330,200 ${timelineData.slice(14).map((d, i) => `L ${330 + i * 20},${200 - d.fertility * 2}`).join(' ')} L 550,200 Z`}
+                    fill="#ef4444"
+                    fillOpacity="0.2"
+                  />
+                  
+                  {/* Current age indicator */}
+                  <line
+                    x1={50 + (currentAge - 25) * 20}
+                    y1="0"
+                    x2={50 + (currentAge - 25) * 20}
+                    y2="200"
+                    stroke="#ef4444"
+                    strokeWidth="2"
+                    strokeDasharray="5 5"
+                  />
+                  <text
+                    x={50 + (currentAge - 25) * 20}
+                    y="20"
+                    textAnchor="middle"
+                    className="fill-red-600 text-sm font-semibold"
+                  >
+                    You are here
+                  </text>
+                  
+                  {/* Age labels */}
+                  {[25, 30, 35, 40, 45].map((age, i) => (
+                    <text
+                      key={age}
+                      x={50 + i * 100}
+                      y="220"
+                      textAnchor="middle"
+                      className="fill-gray-600 text-sm"
+                    >
+                      {age}
+                    </text>
+                  ))}
+                </svg>
               </div>
               
+              {/* Legend */}
+              <div className="flex justify-center gap-6 mt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span className="text-sm">Optimal (80%+)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                  <span className="text-sm">Good (60-79%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-500 rounded"></div>
+                  <span className="text-sm">Declining (&lt;60%)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline breakdown */}
+            <div className="grid md:grid-cols-3 gap-4 mb-8">
+              <Card className="p-4 bg-green-50 border-green-200">
+                <h4 className="font-semibold text-green-800 mb-1">Optimal Window</h4>
+                <p className="text-sm text-green-700">Ages {currentAge < 35 ? currentAge : "25"}-35</p>
+                <p className="text-xs text-green-600 mt-1">80%+ conception rate</p>
+              </Card>
+              <Card className="p-4 bg-yellow-50 border-yellow-200">
+                <h4 className="font-semibold text-yellow-800 mb-1">Good Window</h4>
+                <p className="text-sm text-yellow-700">Ages 36-38</p>
+                <p className="text-xs text-yellow-600 mt-1">60-79% conception rate</p>
+              </Card>
+              <Card className="p-4 bg-red-50 border-red-200">
+                <h4 className="font-semibold text-red-800 mb-1">Declining Window</h4>
+                <p className="text-sm text-red-700">Ages 39-42</p>
+                <p className="text-xs text-red-600 mt-1">30-59% conception rate</p>
+              </Card>
+            </div>
+
+            {/* Sample insight */}
+            <Card className="p-6 bg-purple-50 border-purple-200">
+              <p className="text-purple-900">
+                Based on your answers: Women in serious relationships who haven't discussed children by year 3 
+                are <span className="font-bold">73% less likely</span> to have them with their current partner.
+              </p>
+            </Card>
+          </Card>
+        </motion.div>
+
+        {/* Paywall Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="max-w-2xl mx-auto"
+        >
+          <Card className="bg-white/95 backdrop-blur p-8 shadow-xl border-purple-200">
+            <div className="text-center mb-6">
+              <Lock className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+              <h3 className="text-2xl font-semibold text-gray-900">
+                🔒 Unlock Your Full Personalized Report
+              </h3>
+            </div>
+
+            {/* What's included */}
+            <div className="space-y-3 mb-8">
+              {[
+                "How your relationship compares to 500+ women",
+                "Red flags in your situation",
+                "Exact action plan with dates",
+                "Stories from women who waited vs didn't",
+                "Fertility clinic recommendations",
+                "Egg freezing calculator"
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-gray-700">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Blurred preview */}
+            <div className="relative mb-8">
+              <Card className="p-6 blur-sm">
+                <h4 className="font-semibold mb-2">Your Relationship Red Flags</h4>
+                <p className="text-gray-600">
+                  Based on your answers, we've identified 3 critical red flags that could impact...
+                </p>
+              </Card>
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 font-semibold">Unlock to read</span>
+              </div>
+            </div>
+
+            {/* Email and pricing */}
+            <div className="space-y-4">
+              <Input
+                type="email"
+                placeholder="Enter email to unlock"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="text-lg p-6"
+              />
+              
+              <div className="text-center">
+                <div className="mb-2">
+                  <span className="text-gray-500 line-through text-lg">$49.99</span>
+                  <span className="text-3xl font-bold text-purple-600 ml-3">$29.99</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">One-time payment • Instant access</p>
+              </div>
+
               <Button
                 size="lg"
-                className="bg-rose-500 hover:bg-rose-600 text-white px-12 py-6 text-lg"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-6 text-lg font-semibold"
+                disabled={!email}
               >
-                Unlock Full Report
+                UNLOCK MY FULL REPORT - $29.99
               </Button>
-              
-              <p className="text-sm text-zinc-500">
-                Instant access • Science-backed • 30-day guarantee
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-zinc-800">
-              <div>
-                <div className="font-bold">15-page report</div>
-                <div className="text-sm text-zinc-400">Detailed analysis</div>
-              </div>
-              <div>
-                <div className="font-bold">Action timeline</div>
-                <div className="text-sm text-zinc-400">Month-by-month guide</div>
-              </div>
-              <div>
-                <div className="font-bold">Partner talk guide</div>
-                <div className="text-sm text-zinc-400">Conversation scripts</div>
+            {/* Social proof */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">247 women unlocked today</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600">4.9/5 (1,847 reviews)</span>
+                </div>
               </div>
             </div>
           </Card>
         </motion.div>
       </div>
     </div>
-  );
+  )
 }
 
 export default function ResultsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center"><div className="text-zinc-50">Loading...</div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <ResultsContent />
     </Suspense>
-  );
+  )
 }
