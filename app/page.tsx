@@ -1,328 +1,242 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { useRouter } from "next/navigation"
-import { Shield, Clock, Star } from "lucide-react"
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowRight, Lock, Clock, FlaskConical, ChevronUp } from "lucide-react";
 
 export default function Home() {
-  const router = useRouter()
+  const router = useRouter();
 
-  const fadeInUp = {
+  const fadeUp = {
     hidden: { opacity: 0, y: 30 },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: i * 0.2,
-        duration: 0.6,
-      },
+      transition: { delay: i * 0.15, duration: 0.6 },
     }),
-  }
+  };
 
   return (
-    <>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
-      `}</style>
+    <div className="min-h-screen bg-[#FAF8F5] text-[#2C2C2C] selection:bg-[#E07A5F]/20">
+      {/* Nav */}
+      <motion.nav
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-center justify-between px-6 py-5 max-w-4xl mx-auto"
+      >
+        <h1
+          className="text-2xl tracking-tight"
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+        >
+          Claira
+        </h1>
+        <span className="text-xs tracking-widest uppercase text-[#2C2C2C]/40 font-medium">
+          Fertility Intelligence
+        </span>
+      </motion.nav>
 
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-purple-50 relative overflow-hidden">
-        {/* Floating decorative shapes */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200/30 rounded-full blur-3xl" />
-        <div className="absolute top-40 right-20 w-96 h-96 bg-pink-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-40 left-1/3 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-64 h-64 bg-pink-300/25 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-5 w-40 h-40 bg-violet-200/30 rounded-full blur-2xl" />
-        <div className="absolute top-10 right-1/3 w-52 h-52 bg-rose-200/25 rounded-full blur-3xl" />
-
-        <div className="relative z-10 max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          {/* Logo */}
-          <motion.div
-            className="text-center mb-10"
+      <main className="max-w-2xl mx-auto px-6 pb-24">
+        {/* Hero */}
+        <section className="pt-12 pb-16 text-center">
+          <motion.p
             custom={0}
+            variants={fadeUp}
             initial="hidden"
             animate="visible"
-            variants={fadeInUp}
+            className="text-xs tracking-[0.25em] uppercase text-[#E07A5F] font-medium mb-6"
           >
-            <h1
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontWeight: 600,
-                letterSpacing: "0.02em",
-              }}
-              className="text-4xl sm:text-5xl text-purple-900 tracking-wide"
-            >
-              Claira
-            </h1>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto mt-2 rounded-full" />
-          </motion.div>
+            The quiz women are whispering about
+          </motion.p>
 
-          {/* Headline */}
-          <motion.div
-            className="text-center mb-8"
+          <motion.h2
             custom={1}
+            variants={fadeUp}
             initial="hidden"
             animate="visible"
-            variants={fadeInUp}
+            className="text-4xl sm:text-5xl leading-[1.15] font-normal mb-6"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
           >
-            <h2
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontWeight: 700,
-              }}
-              className="text-3xl sm:text-5xl text-gray-900 leading-tight"
-            >
-              Am I Wasting My{" "}
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Fertile Years
-              </span>
-              ?
-            </h2>
-          </motion.div>
+            Am I Wasting
+            <br />
+            My Fertile Years?
+          </motion.h2>
 
-          {/* Reddit Quote Card */}
-          <motion.div
+          <motion.p
             custom={2}
+            variants={fadeUp}
             initial="hidden"
             animate="visible"
-            variants={fadeInUp}
+            className="text-base sm:text-lg text-[#2C2C2C]/60 max-w-md mx-auto leading-relaxed"
           >
-            <Card className="bg-white/70 backdrop-blur-xl border border-white/50 shadow-lg shadow-purple-100/50 p-5 sm:p-6 mb-8 rounded-2xl">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-1">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="white"
-                    >
-                      <circle cx="9" cy="14" r="1.5" />
-                      <circle cx="15" cy="14" r="1.5" />
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-                      <path d="M15.5 11c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400 mb-2 font-medium">
-                    r/relationships • Posted by u/ThrowRA_****
-                  </p>
-                  <p className="text-sm sm:text-base text-gray-800 leading-relaxed font-medium">
-                    &ldquo;(UPDATE):My MIL exposed my (28f) past group-assault to my
-                    husband (34m). Who had no idea. Wants him to divorce me.
-                    Please help me.&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3 mt-3">
-                    <div className="flex items-center gap-1.5">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#f97316"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M12 19V5M5 12l7-7 7 7" />
-                      </svg>
-                      <span className="text-sm font-bold text-orange-500">
-                        13,631
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-400">upvotes</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+            Get a personalized fertility timeline based on your age, lifestyle,
+            and relationship&mdash;so you can stop guessing and start planning.
+          </motion.p>
+        </section>
 
-          {/* Social proof counter */}
-          <motion.div
-            className="text-center mb-8"
-            custom={3}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
-            <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-purple-100 rounded-full px-5 py-2.5 shadow-sm">
-              <div className="flex -space-x-2">
-                {[
-                  "from-purple-400 to-pink-400",
-                  "from-pink-400 to-rose-400",
-                  "from-violet-400 to-purple-400",
-                  "from-rose-400 to-orange-300",
-                ].map((gradient, i) => (
-                  <div
-                    key={i}
-                    className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} border-2 border-white flex items-center justify-center`}
-                  >
-                    <span className="text-white text-[10px] font-bold">
-                      {["👩", "👩‍🦰", "👩‍🦱", "👱‍♀️"][i]}
-                    </span>
-                  </div>
-                ))}
+        {/* Reddit Quote Card */}
+        <motion.div
+          custom={3}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+        >
+          <Card className="bg-white border border-[#2C2C2C]/8 shadow-sm rounded-2xl p-6 mb-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-6 h-6 rounded-full bg-[#FF4500] flex items-center justify-center">
+                <span className="text-white text-xs font-bold">r/</span>
               </div>
-              <p className="text-sm text-gray-700">
-                <span className="font-bold text-purple-700">12,847</span> women
-                have taken this quiz
-              </p>
+              <span className="text-sm text-[#2C2C2C]/50 font-medium">
+                r/relationships
+              </span>
+              <span className="text-xs text-[#2C2C2C]/30 ml-auto">
+                14h ago
+              </span>
             </div>
-          </motion.div>
 
-          {/* Benefits */}
-          <motion.div
-            className="grid gap-3 mb-8"
-            custom={4}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
-            {[
-              {
-                emoji: "💫",
-                title: "Personalized timeline",
-                desc: "Get a custom fertility window based on your unique situation",
-              },
-              {
-                emoji: "🚩",
-                title: "Red flag detection",
-                desc: "Identify relationship patterns that may be costing you time",
-              },
-              {
-                emoji: "📊",
-                title: "Real data insights",
-                desc: "Science-backed analysis from thousands of women's experiences",
-              },
-            ].map((benefit, i) => (
-              <motion.div
-                key={i}
-                custom={4 + i * 0.5}
-                initial="hidden"
-                animate="visible"
-                variants={fadeInUp}
-              >
-                <Card className="bg-white/60 backdrop-blur-xl border border-white/50 shadow-sm hover:shadow-md hover:shadow-purple-100/50 transition-all duration-300 p-4 sm:p-5 rounded-xl group hover:bg-white/80">
-                  <div className="flex items-start gap-4">
-                    <div className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      {benefit.emoji}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 text-base">
-                        {benefit.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">
-                        {benefit.desc}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* CTA Button */}
-          <motion.div
-            className="text-center mb-8"
-            custom={7}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
-            <Button
-              onClick={() => router.push("/quiz")}
-              className="w-full sm:w-auto px-10 py-7 text-base sm:text-lg font-bold rounded-2xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:from-purple-700 hover:via-purple-600 hover:to-pink-600 text-white shadow-xl shadow-purple-300/40 hover:shadow-purple-400/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-0 relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-              <span className="relative z-10">START YOUR FREE ASSESSMENT</span>
-            </Button>
-            <p className="text-xs text-gray-400 mt-3">
-              No email required • Completely free
-            </p>
-          </motion.div>
-
-          {/* Trust Badges */}
-          <motion.div
-            className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-8"
-            custom={8}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-purple-600" />
-              </div>
-              <span className="text-sm font-medium">100% Anonymous</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="w-9 h-9 rounded-full bg-pink-100 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-pink-600" />
-              </div>
-              <span className="text-sm font-medium">2 minutes</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center">
-                <Star className="w-4 h-4 text-violet-600" />
-              </div>
-              <span className="text-sm font-medium">4.9/5 rating</span>
-            </div>
-          </motion.div>
-
-          {/* Featured on badges */}
-          <motion.div
-            className="text-center"
-            custom={9}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-3 font-medium">
-              Featured on
-            </p>
-            <div className="flex flex-wrap justify-center gap-2.5">
-              <div className="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center flex-shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                    <circle cx="12" cy="12" r="10" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-gray-700">
-                  r/relationships
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center flex-shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                    <circle cx="12" cy="12" r="10" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-gray-700">
-                  r/TwoXChromosomes
-                </span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Footer spacing */}
-          <motion.div
-            className="text-center mt-12 pb-8"
-            custom={10}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
             <p
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-              className="text-lg text-purple-400 italic"
+              className="text-[15px] leading-relaxed text-[#2C2C2C]/80 mb-4"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
             >
-              Your timeline. Your choices. Your clarity.
+              &ldquo;(UPDATE): My MIL exposed my (28f) past group-assault to my
+              husband (34m). Who had no idea. Wants him to divorce me. Please
+              help me.&rdquo;
             </p>
-          </motion.div>
-        </div>
-      </div>
-    </>
-  )
+
+            <div className="flex items-center gap-4 text-sm text-[#2C2C2C]/40">
+              <div className="flex items-center gap-1">
+                <ChevronUp className="w-4 h-4 text-[#E07A5F]" />
+                <span className="font-medium text-[#E07A5F]">13,631</span>
+              </div>
+              <span>2,847 comments</span>
+            </div>
+          </Card>
+        </motion.div>
+
+        <motion.p
+          custom={4}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="text-center text-sm text-[#2C2C2C]/35 mb-16"
+        >
+          12,847 women took this quiz this week
+        </motion.p>
+
+        {/* Benefits */}
+        <motion.section
+          custom={5}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="grid gap-6 mb-16"
+        >
+          {[
+            {
+              emoji: "💫",
+              title: "Your Personal Fertility Window",
+              desc: "See exactly where you stand based on science—not anxiety.",
+            },
+            {
+              emoji: "📊",
+              title: "Data-Driven Timeline",
+              desc: "Factors like AMH decline, egg quality, and lifestyle mapped to your age.",
+            },
+            {
+              emoji: "🚩",
+              title: "Red Flags You're Ignoring",
+              desc: "The relationship & health signals most women overlook until it's too late.",
+            },
+          ].map((item, i) => (
+            <div key={i} className="flex gap-4 items-start">
+              <span className="text-2xl mt-0.5">{item.emoji}</span>
+              <div>
+                <h3
+                  className="text-base font-medium mb-1"
+                  style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                >
+                  {item.title}
+                </h3>
+                <p className="text-sm text-[#2C2C2C]/50 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </motion.section>
+
+        {/* CTA */}
+        <motion.div
+          custom={6}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="text-center mb-12"
+        >
+          <Button
+            onClick={() => router.push("/quiz")}
+            className="bg-[#E07A5F] hover:bg-[#c96a52] text-white text-base font-medium px-10 py-7 rounded-full shadow-lg shadow-[#E07A5F]/20 transition-all duration-300 hover:shadow-xl hover:shadow-[#E07A5F]/30 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Get My Fertility Timeline
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+
+          <p className="text-xs text-[#2C2C2C]/30 mt-4">
+            Free &middot; No email required &middot; Results in 2 minutes
+          </p>
+        </motion.div>
+
+        {/* Trust Badges */}
+        <motion.div
+          custom={7}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-wrap items-center justify-center gap-6 mb-16"
+        >
+          {[
+            { icon: Lock, label: "100% Anonymous" },
+            { icon: Clock, label: "Takes 2 min" },
+            { icon: FlaskConical, label: "Research-backed" },
+          ].map((badge, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 text-sm text-[#2C2C2C]/40"
+            >
+              <badge.icon className="w-4 h-4" />
+              <span>{badge.label}</span>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Featured */}
+        <motion.div
+          custom={8}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="text-center"
+        >
+          <p className="text-xs tracking-[0.2em] uppercase text-[#2C2C2C]/25 mb-4">
+            Discussed in
+          </p>
+          <div className="flex items-center justify-center gap-6 text-sm text-[#2C2C2C]/35">
+            <span className="font-medium">r/relationships</span>
+            <span className="w-1 h-1 rounded-full bg-[#2C2C2C]/15" />
+            <span className="font-medium">r/TwoXChromosomes</span>
+          </div>
+        </motion.div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-[#2C2C2C]/5 py-8 text-center">
+        <p className="text-xs text-[#2C2C2C]/25">
+          &copy; 2025 Claira. Not medical advice. For informational purposes
+          only.
+        </p>
+      </footer>
+    </div>
+  );
 }

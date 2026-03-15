@@ -1,593 +1,640 @@
-"use client";
+'use client';
 
-import { useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Lock, CheckCircle2, Star } from "lucide-react";
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
 
-function getFertilityPercent(age: number): number {
-  if (age <= 25) return 100;
-  if (age <= 32) return 100 - ((age - 25) / 7) * 14;
-  if (age <= 35) return 86 - ((age - 32) / 3) * 15;
-  if (age <= 38) return 71 - ((age - 35) / 3) * 21;
-  if (age <= 45) return 50 - ((age - 38) / 7) * 40;
-  if (age <= 50) return 10 - ((age - 45) / 5) * 8;
-  return 2;
+const fertData = [
+  { age: 25, fertility: 100 },
+  { age: 26, fertility: 98 },
+  { age: 27, fertility: 96 },
+  { age: 28, fertility: 93 },
+  { age: 29, fertility: 90 },
+  { age: 30, fertility: 86 },
+  { age: 31, fertility: 82 },
+  { age: 32, fertility: 78 },
+  { age: 33, fertility: 73 },
+  { age: 34, fertility: 68 },
+  { age: 35, fertility: 62 },
+  { age: 36, fertility: 55 },
+  { age: 37, fertility: 48 },
+  { age: 38, fertility: 40 },
+  { age: 39, fertility: 33 },
+  { age: 40, fertility: 27 },
+  { age: 41, fertility: 22 },
+  { age: 42, fertility: 17 },
+  { age: 43, fertility: 13 },
+  { age: 44, fertility: 10 },
+  { age: 45, fertility: 7 },
+  { age: 46, fertility: 5 },
+  { age: 47, fertility: 3 },
+  { age: 48, fertility: 2 },
+  { age: 49, fertility: 1.5 },
+  { age: 50, fertility: 1 },
+];
+
+function getZoneColor(fertility: number): string {
+  if (fertility >= 62) return '#5a7a5a';
+  if (fertility >= 33) return '#c9953c';
+  return '#a3453a';
 }
+
+function getZoneLabel(fertility: number): string {
+  if (fertility >= 62) return 'Optimal Window';
+  if (fertility >= 33) return 'Declining Fertility';
+  return 'Significantly Reduced';
+}
+
+function getZoneBg(fertility: number): string {
+  if (fertility >= 62) return 'rgba(90, 122, 90, 0.08)';
+  if (fertility >= 33) return 'rgba(201, 149, 60, 0.08)';
+  return 'rgba(163, 69, 58, 0.08)';
+}
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const color = getZoneColor(data.fertility);
+    return (
+      <div
+        style={{
+          background: '#faf6f1',
+          border: `1px solid ${color}`,
+          borderRadius: 8,
+          padding: '12px 16px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        }}
+      >
+        <p style={{ margin: 0, fontSize: 13, color: '#6b6560', letterSpacing: '0.05em' }}>
+          AGE {data.age}
+        </p>
+        <p style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 300, color }}>
+          {data.fertility}% fertility
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 function ResultsContent() {
   const searchParams = useSearchParams();
-  const data = searchParams.get("data");
-  const [email, setEmail] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const ageParam = searchParams.get('age') || '30';
+  const goal = searchParams.get('goal') || 'understand';
+  const cycle = searchParams.get('cycle') || 'regular';
 
-  let answers: Record<string, string> = {};
-  try {
-    if (data) {
-      answers = JSON.parse(decodeURIComponent(data));
-    }
-  } catch {
-    answers = {};
-  }
+  const userAge = Math.max(25, Math.min(50, parseInt(ageParam) || 30));
 
-  const currentAge = parseInt(answers.currentAge || answers.age || "30", 10);
-
-  // Generate data points for fertility curve
-  const ages = Array.from({ length: 26 }, (_, i) => 25 + i); // 25 to 50
-  const dataPoints = ages.map((age) => ({
-    age,
-    fertility: getFertilityPercent(age),
-  }));
-
-  // SVG dimensions
-  const svgWidth = 600;
-  const svgHeight = 300;
-  const padding = { top: 30, right: 30, bottom: 50, left: 50 };
-  const chartWidth = svgWidth - padding.left - padding.right;
-  const chartHeight = svgHeight - padding.top - padding.bottom;
-
-  const xScale = (age: number) =>
-    padding.left + ((age - 25) / 25) * chartWidth;
-  const yScale = (fertility: number) =>
-    padding.top + ((100 - fertility) / 100) * chartHeight;
-
-  // Build the main path
-  const pathD = dataPoints
-    .map((p, i) => {
-      const x = xScale(p.age);
-      const y = yScale(p.fertility);
-      return `${i === 0 ? "M" : "L"} ${x} ${y}`;
-    })
-    .join(" ");
-
-  // Build fill areas for colored zones
-  const buildFillPath = (
-    startAge: number,
-    endAge: number
-  ): string => {
-    const filtered = dataPoints.filter(
-      (p) => p.age >= startAge && p.age <= endAge
+  const userPoint = fertData.find((d) => d.age === userAge) ||
+    fertData.reduce((prev, curr) =>
+      Math.abs(curr.age - userAge) < Math.abs(prev.age - userAge) ? curr : prev
     );
-    if (filtered.length === 0) return "";
-    const top = filtered
-      .map((p, i) => {
-        const x = xScale(p.age);
-        const y = yScale(p.fertility);
-        return `${i === 0 ? "M" : "L"} ${x} ${y}`;
-      })
-      .join(" ");
-    const bottomRight = `L ${xScale(filtered[filtered.length - 1].age)} ${yScale(0)}`;
-    const bottomLeft = `L ${xScale(filtered[0].age)} ${yScale(0)} Z`;
-    return `${top} ${bottomRight} ${bottomLeft}`;
+
+  const fertility = userPoint.fertility;
+  const zoneColor = getZoneColor(fertility);
+  const zoneLabel = getZoneLabel(fertility);
+  const zoneBg = getZoneBg(fertility);
+
+  const yearsLeft = fertData
+    .filter((d) => d.age >= userAge && d.fertility >= 33)
+    .length;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
   };
 
-  const greenFill = buildFillPath(25, 32);
-  const yellowFill = buildFillPath(33, 38);
-  const redFill = buildFillPath(39, 50);
-
-  // Current age position
-  const currentAgeX = xScale(Math.min(Math.max(currentAge, 25), 50));
-  const currentAgeFertility = getFertilityPercent(
-    Math.min(Math.max(currentAge, 25), 50)
-  );
-  const currentAgeY = yScale(currentAgeFertility);
-
-  // Age tick labels
-  const ageTicks = [25, 30, 35, 40, 45, 50];
-
-  const unlockFeatures = [
-    "How your relationship compares to 500+ women",
-    "Red flags in your situation",
-    "Exact action plan with dates",
-    "Stories from women who waited vs didn't",
-    "Fertility clinic recommendations",
-    "Egg freezing calculator",
-  ];
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="text-white text-lg">Loading your results...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white">
-      <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center space-y-3"
+    <div style={{ minHeight: '100vh', background: '#faf6f1' }}>
+      {/* Header */}
+      <header
+        style={{
+          padding: '24px 0',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(107, 101, 96, 0.1)',
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            fontSize: 18,
+            fontWeight: 400,
+            letterSpacing: '0.2em',
+            color: '#3d3833',
+            textTransform: 'uppercase',
+          }}
         >
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Your Fertility & Relationship Timeline
-          </h1>
-          <p className="text-gray-400 text-lg">
-            Based on your answers, here&apos;s your personalized overview
+          Claira
+        </h1>
+      </header>
+
+      <main style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px' }}>
+        {/* Hero Section */}
+        <section style={{ textAlign: 'center', padding: '60px 0 40px' }}>
+          <p
+            style={{
+              fontSize: 12,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: '#6b6560',
+              marginBottom: 16,
+            }}
+          >
+            Your Fertility Snapshot
           </p>
-        </motion.div>
+          <h2
+            style={{
+              fontSize: 'clamp(32px, 5vw, 48px)',
+              fontWeight: 300,
+              color: '#3d3833',
+              lineHeight: 1.15,
+              margin: '0 0 24px',
+              fontFamily: 'Georgia, "Times New Roman", serif',
+            }}
+          >
+            At {userAge}, your fertility is in the
+            <br />
+            <span style={{ color: zoneColor, fontStyle: 'italic' }}>{zoneLabel.toLowerCase()}</span>
+          </h2>
+          <p style={{ fontSize: 17, color: '#6b6560', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+            Based on your responses, we&apos;ve mapped your current position on the fertility timeline.
+            Here&apos;s what the science says.
+          </p>
+        </section>
 
-        {/* Visual Timeline Chart */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
+        {/* Fertility Chart */}
+        <section
+          style={{
+            background: '#fff',
+            borderRadius: 16,
+            padding: '40px 24px 24px',
+            marginBottom: 40,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            border: '1px solid rgba(107, 101, 96, 0.08)',
+          }}
         >
-          <Card className="bg-gray-900/80 border-gray-800 p-6 overflow-x-auto">
-            <h2 className="text-xl font-semibold text-white mb-4">
-              Fertility Curve Overview
-            </h2>
-            <div className="flex justify-center">
-              <svg
-                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="w-full max-w-[600px] h-auto"
-                preserveAspectRatio="xMidYMid meet"
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 400, color: '#3d3833', fontFamily: 'Georgia, serif' }}>
+                Fertility by Age
+              </h3>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#9b9590' }}>
+                Relative fertility percentage, clinical averages
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#5a7a5a' }} />
+                Optimal
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#c9953c' }} />
+                Declining
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3453a' }} />
+                Reduced
+              </span>
+            </div>
+          </div>
+
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={fertData} margin={{ top: 10, right: 10, bottom: 10, left: -10 }}>
+              <defs>
+                <linearGradient id="fertGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#5a7a5a" />
+                  <stop offset="40%" stopColor="#5a7a5a" />
+                  <stop offset="55%" stopColor="#c9953c" />
+                  <stop offset="70%" stopColor="#c9953c" />
+                  <stop offset="85%" stopColor="#a3453a" />
+                  <stop offset="100%" stopColor="#a3453a" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(107,101,96,0.08)" vertical={false} />
+              <XAxis
+                dataKey="age"
+                tick={{ fontSize: 12, fill: '#9b9590' }}
+                tickLine={false}
+                axisLine={{ stroke: 'rgba(107,101,96,0.1)' }}
+                tickFormatter={(val) => (val % 5 === 0 ? `${val}` : '')}
+              />
+              <YAxis
+                tick={{ fontSize: 12, fill: '#9b9590' }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(val) => `${val}%`}
+                domain={[0, 105]}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <ReferenceLine
+                x={userAge}
+                stroke={zoneColor}
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                label={{
+                  value: `You (${userAge})`,
+                  position: 'top',
+                  fill: zoneColor,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="fertility"
+                stroke="url(#fertGradient)"
+                strokeWidth={3}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  fill: zoneColor,
+                  stroke: '#fff',
+                  strokeWidth: 2,
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </section>
+
+        {/* Summary Cards */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+            marginBottom: 40,
+          }}
+        >
+          {[
+            {
+              label: 'Current Fertility',
+              value: `${fertility}%`,
+              sub: 'of peak capacity',
+              color: zoneColor,
+              bg: zoneBg,
+            },
+            {
+              label: 'Fertile Years Left',
+              value: `~${yearsLeft}`,
+              sub: 'above moderate threshold',
+              color: yearsLeft > 5 ? '#5a7a5a' : yearsLeft > 2 ? '#c9953c' : '#a3453a',
+              bg: yearsLeft > 5 ? 'rgba(90,122,90,0.08)' : yearsLeft > 2 ? 'rgba(201,149,60,0.08)' : 'rgba(163,69,58,0.08)',
+            },
+            {
+              label: 'Cycle Status',
+              value: cycle === 'regular' ? 'Regular' : cycle === 'irregular' ? 'Irregular' : 'Unknown',
+              sub: cycle === 'regular' ? 'a positive indicator' : 'worth monitoring',
+              color: cycle === 'regular' ? '#5a7a5a' : '#c9953c',
+              bg: cycle === 'regular' ? 'rgba(90,122,90,0.08)' : 'rgba(201,149,60,0.08)',
+            },
+          ].map((card, i) => (
+            <div
+              key={i}
+              style={{
+                background: '#fff',
+                borderRadius: 16,
+                padding: '28px 24px',
+                border: '1px solid rgba(107,101,96,0.08)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}
+            >
+              <p style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#9b9590', margin: '0 0 12px' }}>
+                {card.label}
+              </p>
+              <p
+                style={{
+                  fontSize: 36,
+                  fontWeight: 300,
+                  color: card.color,
+                  margin: '0 0 4px',
+                  fontFamily: 'Georgia, serif',
+                }}
               >
-                {/* Grid lines */}
-                {[0, 25, 50, 75, 100].map((val) => (
-                  <g key={val}>
-                    <line
-                      x1={padding.left}
-                      y1={yScale(val)}
-                      x2={svgWidth - padding.right}
-                      y2={yScale(val)}
-                      stroke="#374151"
-                      strokeWidth={0.5}
-                      strokeDasharray="4,4"
-                    />
-                    <text
-                      x={padding.left - 8}
-                      y={yScale(val) + 4}
-                      fill="#9CA3AF"
-                      fontSize="11"
-                      textAnchor="end"
-                    >
-                      {val}%
-                    </text>
-                  </g>
-                ))}
-
-                {/* Green fill (25-32) */}
-                {greenFill && (
-                  <motion.path
-                    d={greenFill}
-                    fill="rgba(34, 197, 94, 0.2)"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                  />
-                )}
-
-                {/* Yellow fill (33-38) */}
-                {yellowFill && (
-                  <motion.path
-                    d={yellowFill}
-                    fill="rgba(234, 179, 8, 0.2)"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7, duration: 0.8 }}
-                  />
-                )}
-
-                {/* Red fill (39+) */}
-                {redFill && (
-                  <motion.path
-                    d={redFill}
-                    fill="rgba(239, 68, 68, 0.2)"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.9, duration: 0.8 }}
-                  />
-                )}
-
-                {/* Main curve */}
-                <motion.path
-                  d={pathD}
-                  fill="none"
-                  stroke="#A855F7"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.5, delay: 0.3 }}
-                />
-
-                {/* Data point dots */}
-                {dataPoints
-                  .filter((_, i) => i % 5 === 0)
-                  .map((p) => (
-                    <motion.circle
-                      key={p.age}
-                      cx={xScale(p.age)}
-                      cy={yScale(p.fertility)}
-                      r={4}
-                      fill="#A855F7"
-                      stroke="#1F2937"
-                      strokeWidth={2}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 1.0, duration: 0.3 }}
-                    />
-                  ))}
-
-                {/* Current age vertical line */}
-                <motion.line
-                  x1={currentAgeX}
-                  y1={padding.top}
-                  x2={currentAgeX}
-                  y2={svgHeight - padding.bottom}
-                  stroke="#EF4444"
-                  strokeWidth={2}
-                  strokeDasharray="6,4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2, duration: 0.5 }}
-                />
-
-                {/* Current age dot */}
-                <motion.circle
-                  cx={currentAgeX}
-                  cy={currentAgeY}
-                  r={7}
-                  fill="#EF4444"
-                  stroke="#FFF"
-                  strokeWidth={2}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 1.4, duration: 0.4 }}
-                />
-
-                {/* "You are here" label */}
-                <motion.g
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.6, duration: 0.4 }}
-                >
-                  <rect
-                    x={currentAgeX - 40}
-                    y={padding.top - 26}
-                    width={80}
-                    height={22}
-                    rx={4}
-                    fill="#EF4444"
-                  />
-                  <text
-                    x={currentAgeX}
-                    y={padding.top - 11}
-                    fill="white"
-                    fontSize="11"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    You are here
-                  </text>
-                </motion.g>
-
-                {/* Age labels at bottom */}
-                {ageTicks.map((age) => (
-                  <text
-                    key={age}
-                    x={xScale(age)}
-                    y={svgHeight - padding.bottom + 25}
-                    fill="#9CA3AF"
-                    fontSize="12"
-                    textAnchor="middle"
-                  >
-                    {age}
-                  </text>
-                ))}
-
-                {/* Axis label */}
-                <text
-                  x={svgWidth / 2}
-                  y={svgHeight - 5}
-                  fill="#6B7280"
-                  fontSize="12"
-                  textAnchor="middle"
-                >
-                  Age
-                </text>
-              </svg>
+                {card.value}
+              </p>
+              <p style={{ fontSize: 13, color: '#6b6560', margin: 0 }}>{card.sub}</p>
             </div>
-
-            {/* Legend */}
-            <div className="flex flex-wrap gap-4 justify-center mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500/40 border border-green-500" />
-                <span className="text-sm text-gray-300">Optimal 80%+</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-500/40 border border-yellow-500" />
-                <span className="text-sm text-gray-300">Good 60-79%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500/40 border border-red-500" />
-                <span className="text-sm text-gray-300">Declining &lt;60%</span>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Timeline Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4"
-        >
-          {/* Green Card - Optimal */}
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <Card className="bg-green-950/50 border-green-700/50 p-5 h-full">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <h3 className="font-semibold text-green-400 text-sm uppercase tracking-wide">
-                  Optimal Window
-                </h3>
-              </div>
-              <p className="text-white font-bold text-lg">
-                Ages {Math.min(currentAge, 25)}-35
-              </p>
-              <p className="text-green-300/80 text-sm mt-1">
-                80%+ conception probability
-              </p>
-              <div className="mt-3 w-full bg-green-900/50 rounded-full h-2">
-                <motion.div
-                  className="bg-green-500 h-2 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: "85%" }}
-                  transition={{ delay: 0.8, duration: 1 }}
-                />
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Yellow Card - Good */}
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <Card className="bg-yellow-950/50 border-yellow-700/50 p-5 h-full">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <h3 className="font-semibold text-yellow-400 text-sm uppercase tracking-wide">
-                  Good Window
-                </h3>
-              </div>
-              <p className="text-white font-bold text-lg">Ages 36-38</p>
-              <p className="text-yellow-300/80 text-sm mt-1">
-                60-79% conception probability
-              </p>
-              <div className="mt-3 w-full bg-yellow-900/50 rounded-full h-2">
-                <motion.div
-                  className="bg-yellow-500 h-2 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: "65%" }}
-                  transition={{ delay: 1.0, duration: 1 }}
-                />
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Red Card - Declining */}
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <Card className="bg-red-950/50 border-red-700/50 p-5 h-full">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <h3 className="font-semibold text-red-400 text-sm uppercase tracking-wide">
-                  Declining
-                </h3>
-              </div>
-              <p className="text-white font-bold text-lg">Ages 39-42</p>
-              <p className="text-red-300/80 text-sm mt-1">
-                30-59% conception probability
-              </p>
-              <div className="mt-3 w-full bg-red-900/50 rounded-full h-2">
-                <motion.div
-                  className="bg-red-500 h-2 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: "40%" }}
-                  transition={{ delay: 1.2, duration: 1 }}
-                />
-              </div>
-            </Card>
-          </motion.div>
-        </motion.div>
+          ))}
+        </section>
 
         {/* Insight Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
+        <section
+          style={{
+            background: '#3d3833',
+            borderRadius: 16,
+            padding: '40px 32px',
+            marginBottom: 40,
+            color: '#faf6f1',
+          }}
         >
-          <Card className="bg-gradient-to-br from-purple-900/80 to-purple-800/60 border-purple-600/50 p-6">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-1">
-                <div className="w-10 h-10 rounded-full bg-purple-500/30 flex items-center justify-center">
-                  <span className="text-xl">💡</span>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-purple-200 font-semibold text-lg mb-2">
-                  Key Insight
-                </h3>
-                <p className="text-white text-base leading-relaxed">
-                  Women in serious relationships who haven&apos;t discussed
-                  children by year 3 are{" "}
-                  <span className="font-bold text-purple-300">
-                    73% less likely
-                  </span>{" "}
-                  to have them together.
-                </p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+          <p style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(250,246,241,0.5)', margin: '0 0 16px' }}>
+            Clinical Insight
+          </p>
+          <h3 style={{ fontSize: 24, fontWeight: 300, margin: '0 0 16px', lineHeight: 1.4, fontFamily: 'Georgia, serif' }}>
+            After 35, the chance of conceiving naturally drops by approximately 50% compared to age 25.
+          </h3>
+          <p style={{ fontSize: 15, color: 'rgba(250,246,241,0.7)', lineHeight: 1.7, margin: '0 0 20px' }}>
+            A study published in <em>Human Reproduction</em> found that women aged 35–39 had a 29% lower
+            probability of conception per cycle compared to women aged 25–29. Egg quality and ovarian reserve
+            are the two primary factors that decline with age.
+          </p>
+          <p style={{ fontSize: 12, color: 'rgba(250,246,241,0.4)', margin: 0 }}>
+            Source: Dunson et al., Human Reproduction, 2004
+          </p>
+        </section>
 
         {/* Paywall Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="relative"
+        <section
+          style={{
+            background: '#fff',
+            borderRadius: 20,
+            overflow: 'hidden',
+            marginBottom: 80,
+            border: '1px solid rgba(107,101,96,0.1)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
+          }}
         >
-          {/* Gradient border wrapper */}
-          <div className="p-[2px] rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500">
-            <Card className="bg-gray-900 border-0 rounded-2xl p-8 space-y-6">
-              {/* Lock header */}
-              <div className="text-center space-y-3">
-                <motion.div
-                  animate={{ rotate: [0, -5, 5, 0] }}
-                  transition={{ repeat: Infinity, repeatDelay: 3, duration: 0.5 }}
-                  className="inline-flex"
+          {/* Paywall Header */}
+          <div style={{ padding: '48px 32px 0', textAlign: 'center' }}>
+            <p style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#b8734a', margin: '0 0 12px' }}>
+              Unlock Your Full Report
+            </p>
+            <h3
+              style={{
+                fontSize: 'clamp(24px, 4vw, 36px)',
+                fontWeight: 300,
+                color: '#3d3833',
+                margin: '0 0 12px',
+                fontFamily: 'Georgia, serif',
+                lineHeight: 1.25,
+              }}
+            >
+              Your Personalized<br />Fertility Plan
+            </h3>
+            <p style={{ fontSize: 15, color: '#6b6560', maxWidth: 440, margin: '0 auto 32px', lineHeight: 1.6 }}>
+              Get actionable, science-backed recommendations tailored to your age, cycle, and goals.
+            </p>
+          </div>
+
+          {/* Checkmarks */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '12px 24px',
+              padding: '0 32px 36px',
+              maxWidth: 560,
+              margin: '0 auto',
+            }}
+          >
+            {[
+              'Detailed fertility timeline',
+              'Supplement recommendations',
+              'Lifestyle optimization plan',
+              'When to see a specialist',
+              'Cycle tracking guidance',
+              'Partner fertility factors',
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    background: 'rgba(90,122,90,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: 11,
+                    color: '#5a7a5a',
+                  }}
                 >
-                  <Lock className="w-12 h-12 text-purple-400 mx-auto" />
-                </motion.div>
-                <h2 className="text-2xl md:text-3xl font-bold text-white">
-                  🔒 Unlock Your Full Personalized Report
-                </h2>
+                  ✓
+                </span>
+                <span style={{ fontSize: 14, color: '#3d3833' }}>{item}</span>
               </div>
+            ))}
+          </div>
 
-              {/* Feature list */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {unlockFeatures.map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1.0 + index * 0.1, duration: 0.3 }}
-                    className="flex items-start gap-2"
+          {/* Blurred Preview */}
+          <div
+            style={{
+              position: 'relative',
+              margin: '0 32px 36px',
+              borderRadius: 12,
+              overflow: 'hidden',
+              background: 'rgba(107,101,96,0.03)',
+              border: '1px solid rgba(107,101,96,0.06)',
+            }}
+          >
+            <div
+              style={{
+                padding: 24,
+                filter: 'blur(6px)',
+                userSelect: 'none',
+                pointerEvents: 'none',
+              }}
+            >
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#3d3833', marginBottom: 8 }}>
+                Your Optimal Conception Window
+              </p>
+              <p style={{ fontSize: 13, color: '#6b6560', lineHeight: 1.6 }}>
+                Based on your age of {userAge} and regular cycle patterns, your highest probability
+                window for natural conception is within the next 18–24 months. We recommend beginning
+                with CoQ10 supplementation at 200mg daily, combined with folate-rich foods and...
+              </p>
+              <p style={{ fontSize: 13, color: '#6b6560', lineHeight: 1.6 }}>
+                Your AMH levels should be tested as a baseline. Given your goal of {goal === 'conceive' ? 'conception' : 'understanding your fertility'}, 
+                we suggest the following 90-day protocol including targeted nutrition, stress management...
+              </p>
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(250,246,241,0.3)',
+              }}
+            >
+              <span
+                style={{
+                  background: '#3d3833',
+                  color: '#faf6f1',
+                  padding: '8px 20px',
+                  borderRadius: 100,
+                  fontSize: 13,
+                  letterSpacing: '0.05em',
+                }}
+              >
+                🔒 Unlock to read
+              </span>
+            </div>
+          </div>
+
+          {/* Purchase Form */}
+          <div
+            style={{
+              background: 'rgba(107,101,96,0.02)',
+              padding: '36px 32px 48px',
+              textAlign: 'center',
+              borderTop: '1px solid rgba(107,101,96,0.06)',
+            }}
+          >
+            {!submitted ? (
+              <form onSubmit={handleSubmit}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
+                  <span style={{ fontSize: 40, fontWeight: 300, color: '#3d3833', fontFamily: 'Georgia, serif' }}>
+                    $29
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 18,
+                      color: '#9b9590',
+                      textDecoration: 'line-through',
+                      fontWeight: 300,
+                    }}
                   >
-                    <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
-                  </motion.div>
-                ))}
-              </div>
+                    $49
+                  </span>
+                </div>
+                <p style={{ fontSize: 13, color: '#5a7a5a', margin: '0 0 24px' }}>
+                  Limited time — 40% off your personalized report
+                </p>
 
-              {/* Blurred preview */}
-              <div className="relative overflow-hidden rounded-xl">
-                <Card className="bg-gray-800/50 border-gray-700 p-6 backdrop-blur-sm">
-                  <div className="filter blur-sm select-none pointer-events-none">
-                    <div className="space-y-3">
-                      <div className="h-4 bg-gray-600 rounded w-3/4" />
-                      <div className="h-4 bg-gray-600 rounded w-1/2" />
-                      <div className="h-20 bg-gray-700 rounded w-full mt-3" />
-                      <div className="h-4 bg-gray-600 rounded w-2/3" />
-                      <div className="h-4 bg-gray-600 rounded w-5/6" />
-                      <div className="h-16 bg-gray-700 rounded w-full mt-2" />
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/40 backdrop-blur-[2px]">
-                    <div className="text-center">
-                      <Lock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-300 font-medium">
-                        Full report preview
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              {/* Email input */}
-              <div className="space-y-3">
-                <Input
+                <input
                   type="email"
-                  placeholder="Enter your email address"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 h-12 text-base"
+                  required
+                  style={{
+                    width: '100%',
+                    maxWidth: 360,
+                    padding: '14px 20px',
+                    border: '1px solid rgba(107,101,96,0.15)',
+                    borderRadius: 10,
+                    fontSize: 15,
+                    background: '#fff',
+                    color: '#3d3833',
+                    outline: 'none',
+                    marginBottom: 12,
+                    fontFamily: 'inherit',
+                  }}
                 />
-              </div>
+                <br />
+                <button
+                  type="submit"
+                  style={{
+                    width: '100%',
+                    maxWidth: 360,
+                    padding: '16px 32px',
+                    background: '#b8734a',
+                    color: '#faf6f1',
+                    border: 'none',
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    letterSpacing: '0.05em',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = '#a5653f')}
+                  onMouseOut={(e) => (e.currentTarget.style.background = '#b8734a')}
+                >
+                  Get My Full Report →
+                </button>
 
-              {/* Pricing */}
-              <div className="text-center space-y-2">
-                <div className="flex items-center justify-center gap-3">
-                  <span className="text-gray-500 line-through text-xl">
-                    $49.99
-                  </span>
-                  <span className="text-4xl font-bold text-white">$29.99</span>
+                <p style={{ fontSize: 12, color: '#9b9590', margin: '16px 0 0', lineHeight: 1.5 }}>
+                  Instant delivery · Science-backed · 30-day money back guarantee
+                </p>
+              </form>
+            ) : (
+              <div>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    background: 'rgba(90,122,90,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    fontSize: 24,
+                  }}
+                >
+                  ✓
                 </div>
-                <p className="text-gray-400 text-sm">
-                  One-time payment • Instant access
+                <h4 style={{ fontSize: 22, fontWeight: 400, color: '#3d3833', margin: '0 0 8px', fontFamily: 'Georgia, serif' }}>
+                  Check your inbox
+                </h4>
+                <p style={{ fontSize: 14, color: '#6b6560' }}>
+                  We&apos;ve sent your personalized fertility report to {email}
                 </p>
               </div>
+            )}
 
-              {/* CTA Button */}
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl shadow-lg shadow-purple-500/25"
-                  size="lg"
-                >
-                  UNLOCK MY FULL REPORT - $29.99
-                </Button>
-              </motion.div>
-
-              {/* Social proof */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-                <motion.p
-                  className="text-gray-400"
-                  animate={{ opacity: [0.7, 1, 0.7] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                >
-                  🔥{" "}
-                  <span className="text-white font-semibold">247 women</span>{" "}
-                  unlocked today
-                </motion.p>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-yellow-400 text-yellow-400"
-                    />
-                  ))}
-                  <span className="text-gray-400 ml-1">
-                    4.9/5 (1,847 reviews)
-                  </span>
-                </div>
+            {/* Social Proof */}
+            <div
+              style={{
+                marginTop: 36,
+                paddingTop: 24,
+                borderTop: '1px solid rgba(107,101,96,0.08)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '12px 32px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b6560' }}>
+                <span style={{ color: '#c9953c' }}>★★★★★</span>
+                <span>4.9/5 rating</span>
               </div>
-            </Card>
+              <div style={{ fontSize: 13, color: '#6b6560' }}>
+                12,400+ reports generated
+              </div>
+              <div style={{ fontSize: 13, color: '#6b6560' }}>
+                Featured in Well+Good
+              </div>
+            </div>
           </div>
-        </motion.div>
-      </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer
+        style={{
+          textAlign: 'center',
+          padding: '32px 24px',
+          borderTop: '1px solid rgba(107,101,96,0.08)',
+          fontSize: 12,
+          color: '#9b9590',
+          lineHeight: 1.8,
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          Claira provides educational content only and does not constitute medical advice.
+        </p>
+        <p style={{ margin: '4px 0 0' }}>
+          © {new Date().getFullYear()} Claira Fertility · Privacy · Terms
+        </p>
+      </footer>
     </div>
   );
 }
@@ -596,15 +643,19 @@ export default function ResultsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-950">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center space-y-4"
-          >
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-white text-lg">Analyzing your results...</p>
-          </motion.div>
+        <div
+          style={{
+            minHeight: '100vh',
+            background: '#faf6f1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#6b6560',
+            fontSize: 15,
+            letterSpacing: '0.1em',
+          }}
+        >
+          Preparing your results…
         </div>
       }
     >

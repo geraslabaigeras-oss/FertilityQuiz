@@ -2,20 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 interface Question {
   id: number;
   text: string;
   type: "number" | "options";
   options?: string[];
-  insight?: string;
   placeholder?: string;
-  min?: number;
-  max?: number;
+  insight?: string;
 }
 
 const questions: Question[] = [
@@ -24,62 +18,57 @@ const questions: Question[] = [
     text: "How old are you?",
     type: "number",
     placeholder: "Enter your age",
-    min: 16,
-    max: 60,
   },
   {
     id: 2,
-    text: "What's your relationship status?",
+    text: "What is your relationship status?",
     type: "options",
-    options: ["Single", "Dating", "Serious relationship", "Married"],
-    insight:
-      "62% of women in serious relationships discuss family planning within 2 years",
+    options: ["Single", "Dating", "In a serious relationship", "Married"],
+    insight: "62% of couples discuss family planning within the first 2 years together.",
   },
   {
     id: 3,
-    text: "How long have you been together?",
+    text: "How long have you been with your partner?",
     type: "options",
     options: [
-      "Less than 6 months",
-      "6 months – 1 year",
-      "1–2 years",
+      "I'm not in a relationship",
+      "Less than 1 year",
+      "1–3 years",
       "3–5 years",
-      "5+ years",
+      "More than 5 years",
     ],
   },
   {
     id: 4,
-    text: "Have you discussed having kids with your partner?",
+    text: "Have you and your partner discussed having children?",
     type: "options",
     options: [
-      "Yes, we're aligned",
-      "Yes, but we disagree",
+      "Yes, in detail",
       "Briefly mentioned it",
       "Not yet",
-      "It's complicated",
+      "We avoid the topic",
+      "Not applicable",
     ],
-    insight:
-      "Partners who avoid this conversation for 3+ years are 73% less likely to have kids together",
+    insight: "Couples who avoid discussing children for 3+ years are 73% less likely to align on family goals.",
   },
   {
     id: 5,
-    text: "Does your partner want kids?",
+    text: "Does your partner want children?",
     type: "options",
     options: [
-      "Definitely yes",
-      "Probably yes",
+      "Yes, definitely",
+      "Leaning towards yes",
       "Unsure",
-      "Probably not",
-      "Definitely not",
+      "Leaning towards no",
+      "No",
+      "Not applicable",
     ],
   },
   {
     id: 6,
-    text: "On a scale of 1–10, how anxious are you about your fertility?",
+    text: "On a scale of 1 to 10, how much anxiety do you feel about your fertility timeline?",
     type: "number",
-    placeholder: "Enter a number from 1 to 10",
-    min: 1,
-    max: 10,
+    placeholder: "1 (none) to 10 (extreme)",
   },
   {
     id: 7,
@@ -87,14 +76,13 @@ const questions: Question[] = [
     type: "options",
     options: [
       "Under 20",
-      "20–24",
-      "25–29",
-      "30–34",
-      "35–39",
-      "40 or older",
+      "20–25",
+      "26–30",
+      "31–35",
+      "Over 35",
+      "I don't know",
     ],
-    insight:
-      "90% of women experience menopause within 5 years of their mother's menopause age",
+    insight: "Research shows 90% of women experience menopause within 5 years of their mother's age at menopause.",
   },
   {
     id: 8,
@@ -102,9 +90,9 @@ const questions: Question[] = [
     type: "options",
     options: [
       "Before 45",
-      "45–49",
-      "50–54",
-      "55 or later",
+      "45–50",
+      "51–55",
+      "After 55",
       "I don't know",
     ],
   },
@@ -113,319 +101,458 @@ const questions: Question[] = [
     text: "Are there any known fertility issues in your family?",
     type: "options",
     options: [
-      "Yes, significant issues",
-      "Some minor issues",
-      "None that I know of",
+      "Yes",
+      "No",
       "I'm not sure",
+      "Prefer not to say",
     ],
   },
   {
     id: 10,
-    text: "What is your biggest concern about your fertility journey?",
+    text: "What is your biggest concern right now?",
     type: "options",
     options: [
       "Running out of time",
-      "Finding the right partner",
+      "Not having the right partner",
       "Financial readiness",
-      "Health concerns",
       "Career timing",
+      "Health concerns",
+      "I'm not sure yet",
     ],
   },
 ];
 
 export default function QuizPage() {
   const router = useRouter();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string | number>>({});
-  const [showInsight, setShowInsight] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
   const [numberInput, setNumberInput] = useState("");
-  const [direction, setDirection] = useState(1);
+  const [showInsight, setShowInsight] = useState(false);
+  const [insightVisible, setInsightVisible] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [questionVisible, setQuestionVisible] = useState(true);
 
-  const question = questions[currentQuestion];
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const currentQuestion = questions[currentIndex];
+  const progress = ((currentIndex) / questions.length) * 100;
 
-  const goToNext = useCallback(() => {
-    if (currentQuestion < questions.length - 1) {
-      setDirection(1);
+  const proceedToNext = useCallback(() => {
+    if (currentIndex >= questions.length - 1) {
+      const encoded = encodeURIComponent(JSON.stringify(answers));
+      router.push(`/results?answers=${encoded}`);
+      return;
+    }
+
+    setQuestionVisible(false);
+    setTimeout(() => {
+      setCurrentIndex((prev) => prev + 1);
       setNumberInput("");
-      setCurrentQuestion((prev) => prev + 1);
-    } else {
-      router.push(
-        `/results?data=${encodeURIComponent(JSON.stringify(answers))}`
-      );
-    }
-  }, [currentQuestion, answers, router]);
-
-  useEffect(() => {
-    if (showInsight) {
-      const timer = setTimeout(() => {
-        setShowInsight(false);
-        goToNext();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showInsight, goToNext]);
-
-  const handleOptionSelect = (option: string) => {
-    const newAnswers = { ...answers, [question.id]: option };
-    setAnswers(newAnswers);
-
-    if (question.insight) {
-      setShowInsight(true);
-    } else {
+      setSelectedOption(null);
       setTimeout(() => {
-        if (currentQuestion < questions.length - 1) {
-          setDirection(1);
-          setNumberInput("");
-          setCurrentQuestion((prev) => prev + 1);
-        } else {
-          router.push(
-            `/results?data=${encodeURIComponent(JSON.stringify(newAnswers))}`
-          );
-        }
-      }, 300);
-    }
+        setQuestionVisible(true);
+      }, 50);
+    }, 300);
+  }, [currentIndex, answers, router]);
+
+  const showInsightThenProceed = useCallback(() => {
+    setShowInsight(true);
+    setTimeout(() => setInsightVisible(true), 50);
+    setTimeout(() => {
+      setInsightVisible(false);
+      setTimeout(() => {
+        setShowInsight(false);
+        proceedToNext();
+      }, 500);
+    }, 3500);
+  }, [proceedToNext]);
+
+  const handleAnswer = useCallback(
+    (answer: string) => {
+      const newAnswers = { ...answers, [currentQuestion.id]: answer };
+      setAnswers(newAnswers);
+
+      if (currentQuestion.insight) {
+        showInsightThenProceed();
+      } else {
+        proceedToNext();
+      }
+    },
+    [answers, currentQuestion, showInsightThenProceed, proceedToNext]
+  );
+
+  const handleOptionClick = (option: string) => {
+    if (selectedOption) return;
+    setSelectedOption(option);
+    setTimeout(() => handleAnswer(option), 400);
   };
 
   const handleNumberSubmit = () => {
-    const value = parseInt(numberInput);
-    if (isNaN(value)) return;
-    if (question.min !== undefined && value < question.min) return;
-    if (question.max !== undefined && value > question.max) return;
+    const val = numberInput.trim();
+    if (!val) return;
 
-    const newAnswers = { ...answers, [question.id]: value };
-    setAnswers(newAnswers);
+    if (currentQuestion.id === 1) {
+      const age = parseInt(val);
+      if (isNaN(age) || age < 13 || age > 65) return;
+    }
+    if (currentQuestion.id === 6) {
+      const score = parseInt(val);
+      if (isNaN(score) || score < 1 || score > 10) return;
+    }
 
-    if (question.insight) {
-      setShowInsight(true);
-    } else {
-      if (currentQuestion < questions.length - 1) {
-        setDirection(1);
-        setNumberInput("");
-        setCurrentQuestion((prev) => prev + 1);
-      } else {
-        router.push(
-          `/results?data=${encodeURIComponent(JSON.stringify(newAnswers))}`
-        );
-      }
+    handleAnswer(val);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleNumberSubmit();
     }
   };
 
-  const slideVariants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 400 : -400,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (dir: number) => ({
-      x: dir > 0 ? -400 : 400,
-      opacity: 0,
-    }),
-  };
+  // Auto-focus number input
+  useEffect(() => {
+    if (currentQuestion.type === "number" && questionVisible) {
+      const timer = setTimeout(() => {
+        const input = document.getElementById("number-input");
+        input?.focus();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [currentIndex, currentQuestion.type, questionVisible]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white flex flex-col">
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#FAF7F2",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       {/* Header */}
-      <div className="w-full max-w-2xl mx-auto px-6 pt-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
-              Claira
-            </span>
-          </div>
-          <span className="text-sm font-medium text-purple-600/70">
-            Question {currentQuestion + 1} of {questions.length}
-          </span>
-        </div>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "24px 40px 16px",
+          maxWidth: 800,
+          width: "100%",
+          margin: "0 auto",
+          boxSizing: "border-box",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontSize: 24,
+            fontWeight: 400,
+            color: "#2D2A26",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Claira
+        </span>
+        <span
+          style={{
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            fontSize: 14,
+            color: "#8A8580",
+            letterSpacing: "0.02em",
+          }}
+        >
+          Question {currentIndex + 1} of {questions.length}
+        </span>
+      </header>
 
-        {/* Progress Bar */}
-        <div className="w-full h-2 bg-purple-100 rounded-full overflow-hidden mb-10">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
+      {/* Progress Bar */}
+      <div
+        style={{
+          maxWidth: 800,
+          width: "100%",
+          margin: "0 auto",
+          padding: "0 40px",
+          boxSizing: "border-box",
+        }}
+      >
+        <div
+          style={{
+            height: 3,
+            backgroundColor: "#E8E3DC",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progress}%`,
+              backgroundColor: "#C4684A",
+              borderRadius: 2,
+              transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
           />
         </div>
       </div>
 
-      {/* Question Area */}
-      <div className="flex-1 w-full max-w-2xl mx-auto px-6 overflow-hidden relative">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentQuestion}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="w-full"
+      {/* Main Content */}
+      <main
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "40px 40px 80px",
+          maxWidth: 640,
+          width: "100%",
+          margin: "0 auto",
+          boxSizing: "border-box",
+          position: "relative",
+        }}
+      >
+        {/* Insight Overlay */}
+        {showInsight && currentQuestion.insight && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 40,
+              zIndex: 10,
+            }}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
-              {question.text}
-            </h2>
-
-            {question.type === "number" && (
-              <div className="space-y-4">
-                <Input
-                  type="number"
-                  placeholder={question.placeholder}
-                  value={numberInput}
-                  onChange={(e) => setNumberInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleNumberSubmit();
-                  }}
-                  min={question.min}
-                  max={question.max}
-                  className="h-14 text-lg border-2 border-purple-200 focus:border-purple-500 focus:ring-purple-500/20 rounded-xl px-4 bg-white/80 backdrop-blur-sm transition-all duration-200"
-                  autoFocus
-                />
-                <Button
-                  onClick={handleNumberSubmit}
-                  disabled={!numberInput}
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold rounded-xl text-base transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-purple-500/25"
-                >
-                  Continue
-                </Button>
-                {question.min !== undefined && question.max !== undefined && (
-                  <p className="text-sm text-purple-400 text-center">
-                    Enter a value between {question.min} and {question.max}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {question.type === "options" && (
-              <div className="space-y-3">
-                {question.options?.map((option, index) => {
-                  const isSelected = answers[question.id] === option;
-                  return (
-                    <motion.div
-                      key={option}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.07, duration: 0.3 }}
-                    >
-                      <Card
-                        onClick={() => handleOptionSelect(option)}
-                        className={`cursor-pointer transition-all duration-200 border-2 rounded-xl overflow-hidden ${
-                          isSelected
-                            ? "border-purple-500 bg-purple-50 shadow-md shadow-purple-500/10"
-                            : "border-purple-100 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50 hover:shadow-sm"
-                        }`}
-                      >
-                        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-                          <CardContent className="p-4 flex items-center gap-3">
-                            <div
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                                isSelected
-                                  ? "border-purple-500 bg-purple-500"
-                                  : "border-purple-200"
-                              }`}
-                            >
-                              {isSelected && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className="w-2 h-2 bg-white rounded-full"
-                                />
-                              )}
-                            </div>
-                            <span
-                              className={`text-base font-medium ${
-                                isSelected ? "text-purple-700" : "text-gray-700"
-                              }`}
-                            >
-                              {option}
-                            </span>
-                          </CardContent>
-                        </motion.div>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Insight Card */}
-        <AnimatePresence>
-          {showInsight && question.insight && (
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-lg z-50"
-            >
-              <Card className="border-0 bg-gradient-to-r from-purple-600 to-pink-500 shadow-2xl shadow-purple-500/30 rounded-2xl overflow-hidden">
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1">
-                        Did you know?
-                      </p>
-                      <p className="text-white font-medium text-sm leading-relaxed">
-                        {question.insight}
-                      </p>
-                    </div>
-                  </div>
-                  {/* Animated progress bar at bottom of insight */}
-                  <div className="mt-4 w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-white/60 rounded-full"
-                      initial={{ width: "100%" }}
-                      animate={{ width: "0%" }}
-                      transition={{ duration: 3, ease: "linear" }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Footer dots */}
-      <div className="w-full max-w-2xl mx-auto px-6 py-6">
-        <div className="flex justify-center gap-1.5">
-          {questions.map((_, i) => (
             <div
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === currentQuestion
-                  ? "w-6 bg-gradient-to-r from-purple-500 to-pink-500"
-                  : i < currentQuestion
-                  ? "w-1.5 bg-purple-400"
-                  : "w-1.5 bg-purple-200"
-              }`}
-            />
-          ))}
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 12,
+                padding: "40px 36px",
+                maxWidth: 480,
+                width: "100%",
+                borderLeft: "3px solid #C4684A",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                opacity: insightVisible ? 1 : 0,
+                transform: insightVisible
+                  ? "translateY(0)"
+                  : "translateY(12px)",
+                transition: "opacity 0.5s ease, transform 0.5s ease",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: "0.12em",
+                  color: "#C4684A",
+                  margin: "0 0 14px",
+                }}
+              >
+                Did you know?
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontSize: 19,
+                  lineHeight: 1.6,
+                  color: "#2D2A26",
+                  margin: 0,
+                }}
+              >
+                {currentQuestion.insight}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Question Content */}
+        <div
+          style={{
+            width: "100%",
+            opacity: showInsight ? 0 : questionVisible ? 1 : 0,
+            transform: showInsight
+              ? "translateY(-12px)"
+              : questionVisible
+              ? "translateY(0)"
+              : "translateY(12px)",
+            transition: "opacity 0.3s ease, transform 0.3s ease",
+            pointerEvents: showInsight ? "none" : "auto",
+          }}
+        >
+          {/* Question Text */}
+          <h1
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: 32,
+              fontWeight: 400,
+              color: "#2D2A26",
+              textAlign: "center" as const,
+              lineHeight: 1.4,
+              margin: "0 0 48px",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {currentQuestion.text}
+          </h1>
+
+          {/* Options */}
+          {currentQuestion.type === "options" && currentQuestion.options && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+                width: "100%",
+              }}
+            >
+              {currentQuestion.options.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => handleOptionClick(option)}
+                  disabled={selectedOption !== null}
+                  style={{
+                    width: "100%",
+                    padding: "18px 24px",
+                    backgroundColor:
+                      selectedOption === option ? "#FFF8F5" : "#FFFFFF",
+                    border:
+                      selectedOption === option
+                        ? "1.5px solid #C4684A"
+                        : "1.5px solid #E8E3DC",
+                    borderRadius: 10,
+                    fontFamily:
+                      "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                    fontSize: 16,
+                    color: "#2D2A26",
+                    cursor: selectedOption ? "default" : "pointer",
+                    transition: "all 0.2s ease",
+                    textAlign: "left" as const,
+                    outline: "none",
+                    lineHeight: 1.4,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!selectedOption) {
+                      (e.target as HTMLButtonElement).style.borderColor =
+                        "#C4684A";
+                      (e.target as HTMLButtonElement).style.backgroundColor =
+                        "#FFF8F5";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!selectedOption || selectedOption !== option) {
+                      (e.target as HTMLButtonElement).style.borderColor =
+                        selectedOption === option ? "#C4684A" : "#E8E3DC";
+                      (e.target as HTMLButtonElement).style.backgroundColor =
+                        selectedOption === option ? "#FFF8F5" : "#FFFFFF";
+                    }
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Number Input */}
+          {currentQuestion.type === "number" && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 24,
+                width: "100%",
+              }}
+            >
+              <input
+                id="number-input"
+                type="number"
+                value={numberInput}
+                onChange={(e) => setNumberInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={currentQuestion.placeholder}
+                style={{
+                  width: "100%",
+                  maxWidth: 320,
+                  padding: "20px 24px",
+                  backgroundColor: "#FFFFFF",
+                  border: "1.5px solid #E8E3DC",
+                  borderRadius: 10,
+                  fontFamily:
+                    "'Georgia', 'Times New Roman', serif",
+                  fontSize: 24,
+                  color: "#2D2A26",
+                  textAlign: "center" as const,
+                  outline: "none",
+                  transition: "border-color 0.2s ease",
+                  appearance: "none" as const,
+                  MozAppearance: "textfield" as const,
+                  WebkitAppearance: "none" as const,
+                }}
+                onFocus={(e) => {
+                  (e.target as HTMLInputElement).style.borderColor = "#C4684A";
+                }}
+                onBlur={(e) => {
+                  (e.target as HTMLInputElement).style.borderColor = "#E8E3DC";
+                }}
+              />
+              <button
+                onClick={handleNumberSubmit}
+                disabled={!numberInput.trim()}
+                style={{
+                  padding: "16px 48px",
+                  backgroundColor: numberInput.trim()
+                    ? "#C4684A"
+                    : "#E8E3DC",
+                  border: "none",
+                  borderRadius: 10,
+                  fontFamily:
+                    "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: numberInput.trim() ? "#FFFFFF" : "#B5B0AA",
+                  cursor: numberInput.trim() ? "pointer" : "default",
+                  transition: "all 0.2s ease",
+                  outline: "none",
+                  letterSpacing: "0.02em",
+                }}
+                onMouseEnter={(e) => {
+                  if (numberInput.trim()) {
+                    (e.target as HTMLButtonElement).style.backgroundColor =
+                      "#B35D42";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (numberInput.trim()) {
+                    (e.target as HTMLButtonElement).style.backgroundColor =
+                      "#C4684A";
+                  }
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      </main>
+
+      {/* Hide number input spinners */}
+      <style>{`
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type="number"] {
+          -moz-appearance: textfield;
+        }
+        ::placeholder {
+          color: #C4C0BA;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 16px;
+        }
+      `}</style>
     </div>
   );
 }
