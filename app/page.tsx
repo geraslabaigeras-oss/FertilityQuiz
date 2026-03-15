@@ -1,158 +1,285 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Shield, Clock, Lock } from 'lucide-react';
 
-export default function Home() {
-  const benefits = [
-    {
-      icon: '💫',
-      title: 'Science-Backed',
-      description: 'Based on latest fertility research'
-    },
-    {
-      icon: '🚩',
-      title: 'Red Flag Detection',
-      description: 'Identify potential fertility concerns early'
-    },
-    {
-      icon: '📊',
-      title: 'Personalized Report',
-      description: 'Get your custom fertility timeline'
-    }
-  ];
+export default function LandingPage() {
+  const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-purple-100 overflow-hidden">
-      {/* Background gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000" />
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#1a0a2e] via-[#2d1b4e] to-[#1a0a2e]">
+      {/* Floating background shapes */}
+      <motion.div
+        className="absolute top-20 left-10 w-72 h-72 rounded-full bg-purple-600/10 blur-3xl"
+        animate={{
+          x: [0, 30, 0],
+          y: [0, -20, 0],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-1/2 right-0 w-96 h-96 rounded-full bg-pink-500/10 blur-3xl"
+        animate={{
+          x: [0, -40, 0],
+          y: [0, 30, 0],
+          scale: [1, 1.2, 1],
+        }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute bottom-20 left-1/3 w-64 h-64 rounded-full bg-violet-500/8 blur-3xl"
+        animate={{
+          x: [0, 20, 0],
+          y: [0, -40, 0],
+          scale: [1, 0.9, 1],
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+      />
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
+      {/* Small floating particles */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 rounded-full bg-purple-400/20"
+          style={{
+            top: `${15 + i * 15}%`,
+            left: `${10 + i * 14}%`,
+          }}
+          animate={{
+            y: [0, -30, 0],
+            opacity: [0.2, 0.5, 0.2],
+          }}
+          transition={{
+            duration: 4 + i,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: i * 0.5,
+          }}
+        />
+      ))}
+
+      {/* Content */}
+      <div className="relative z-10 mx-auto max-w-2xl px-6 py-12 flex flex-col items-center min-h-screen">
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.8 }}
+          className="mb-16"
         >
-          <h1 className="text-4xl font-serif text-purple-900">Claira</h1>
+          <h1
+            className="text-3xl tracking-[0.3em] text-white/90"
+            style={{ fontFamily: 'Cormorant Garamond, Georgia, serif' }}
+          >
+            Claira
+          </h1>
+          <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
         </motion.div>
 
-        {/* Main Headline */}
+        {/* Main headline */}
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-4xl md:text-6xl font-bold text-center text-gray-900 mb-8"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-center text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl"
+          style={{ fontFamily: 'Cormorant Garamond, Georgia, serif' }}
         >
-          Am I Wasting My Fertile Years?
+          Am I Wasting My
+          <br />
+          <span className="bg-gradient-to-r from-purple-300 via-pink-300 to-rose-300 bg-clip-text text-transparent">
+            Fertile Years?
+          </span>
         </motion.h2>
 
-        {/* Reddit Quote */}
+        {/* Reddit quote card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mt-10 w-full"
         >
-          <div className="flex items-start space-x-3">
-            <div className="flex flex-col items-center">
-              <button className="text-gray-400 hover:text-orange-500 transition-colors">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+          <div className="relative rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            {/* Subtle glow behind card */}
+            <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 blur-xl" />
+
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500/80">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 text-white" fill="currentColor">
+                  <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm5 11h-4v4H9v-4H5V9h4V5h2v4h4v2z" />
                 </svg>
-              </button>
-              <span className="text-orange-500 font-bold text-sm">3.2k</span>
+              </div>
+              <span className="text-xs font-medium text-white/40">r/relationship_advice</span>
             </div>
-            <div className="flex-1">
-              <p className="text-gray-700 italic">
-                "I'm 32 and just found out my AMH levels are concerning. I wish I had known about this years ago. 
-                Ladies, please don't wait - get informed about your fertility timeline before it's too late."
-              </p>
-              <p className="text-sm text-gray-500 mt-2">- r/TryingForABaby</p>
+
+            <p className="text-sm leading-relaxed text-white/70 italic">
+              &ldquo;(UPDATE): My MIL exposed my (28f) past group-assault to my husband (34m). Who
+              had no idea. Wants him to divorce me. Please help me.&rdquo;
+            </p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <svg
+                  className="h-4 w-4 text-orange-400/70"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 17l-1.45-1.32C3.4 11.36 0 8.28 0 4.5 0 1.42 2.42 0 5 0c1.74 0 3.41.81 4.5 2.09C10.59.81 12.26 0 14 0 17.58 0 20 2.42 20 4.5c0 3.78-3.4 6.86-8.55 11.18L10 17z"
+                  />
+                </svg>
+                <span className="text-xs font-semibold text-orange-400/70">13,631 upvotes</span>
+              </div>
+              <span className="text-xs text-white/30">•</span>
+              <span className="text-xs text-white/30">Real post. Real pain.</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Women Count */}
-        <motion.p
+        {/* Social proof counter */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="text-center text-2xl font-semibold text-gray-800 mb-12"
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mt-8 flex items-center gap-2"
         >
-          Join <span className="text-purple-600">12,847 women</span> who've discovered their fertility timeline
-        </motion.p>
+          <div className="flex -space-x-2">
+            {[
+              'bg-gradient-to-br from-purple-400 to-pink-400',
+              'bg-gradient-to-br from-pink-400 to-rose-400',
+              'bg-gradient-to-br from-violet-400 to-purple-400',
+              'bg-gradient-to-br from-rose-400 to-pink-300',
+            ].map((gradient, i) => (
+              <div
+                key={i}
+                className={`h-7 w-7 rounded-full ${gradient} border-2 border-[#1a0a2e] flex items-center justify-center`}
+              >
+                <span className="text-[10px] text-white/80">
+                  {['👩', '👩‍🦰', '👩‍🦱', '👩‍🦳'][i]}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-white/50">
+            <span className="font-semibold text-white/70">12,847</span> women took this quiz
+          </p>
+        </motion.div>
 
         {/* Benefits */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="grid md:grid-cols-3 gap-6 mb-12"
+          transition={{ duration: 0.8, delay: 0.7 }}
+          className="mt-10 grid w-full gap-4 sm:grid-cols-3"
         >
-          {benefits.map((benefit, index) => (
+          {[
+            {
+              emoji: '💫',
+              title: 'Clarity in 2 Minutes',
+              desc: 'Understand your fertility timeline with science-backed insights',
+            },
+            {
+              emoji: '🚩',
+              title: 'Spot Red Flags',
+              desc: 'Identify relationship patterns that waste your prime years',
+            },
+            {
+              emoji: '📊',
+              title: 'Personal Report',
+              desc: 'Get a customized action plan based on your unique situation',
+            },
+          ].map((benefit, i) => (
             <motion.div
-              key={benefit.title}
-              whileHover={{ scale: 1.05 }}
-              className="bg-white/80 backdrop-blur rounded-xl p-6 text-center"
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
+              className="group rounded-xl border border-white/5 bg-white/5 p-5 backdrop-blur-sm transition-all hover:border-purple-400/20 hover:bg-white/8"
             >
-              <div className="text-4xl mb-3">{benefit.icon}</div>
-              <h3 className="font-bold text-gray-900 mb-2">{benefit.title}</h3>
-              <p className="text-gray-600 text-sm">{benefit.description}</p>
+              <span className="text-2xl">{benefit.emoji}</span>
+              <h3 className="mt-2 text-sm font-semibold text-white/90">{benefit.title}</h3>
+              <p className="mt-1 text-xs leading-relaxed text-white/40">{benefit.desc}</p>
             </motion.div>
           ))}
         </motion.div>
 
         {/* CTA Button */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.0 }}
+          className="mt-12 w-full flex flex-col items-center"
         >
-          <Link href="/quiz">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-6 px-12 rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full max-w-md"
+          >
+            <Button
+              onClick={() => router.push('/quiz')}
+              className="relative w-full h-16 rounded-2xl text-lg font-semibold text-white shadow-2xl shadow-purple-500/25 transition-all hover:shadow-purple-500/40 border-0 overflow-hidden group cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #8B5CF6, #D946EF, #EC4899)',
+              }}
             >
-              Take the Free Fertility Quiz →
-            </motion.button>
-          </Link>
-          <p className="text-gray-600 text-sm mt-4">Takes only 2 minutes • 100% Free</p>
+              {/* Shimmer effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                animate={{ x: ['-200%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
+              />
+              <span className="relative z-10">Take the Free Quiz →</span>
+            </Button>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+            className="mt-3 text-xs text-white/30"
+          >
+            No signup required • Free forever
+          </motion.p>
         </motion.div>
 
-        {/* Trust Badges */}
+        {/* Trust badges */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-6 items-center"
+          transition={{ duration: 0.8, delay: 1.3 }}
+          className="mt-10 flex flex-wrap items-center justify-center gap-6"
         >
-          <div className="flex items-center space-x-2 text-gray-600">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-sm font-medium">Doctor Reviewed</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-            </svg>
-            <span className="text-sm font-medium">100% Private</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="text-sm font-medium">4.9/5 Rating</span>
-          </div>
+          {[
+            { icon: Lock, label: '100% Anonymous' },
+            { icon: Clock, label: 'Takes 2 minutes' },
+            { icon: Shield, label: 'Data never sold' },
+          ].map((trust, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <trust.icon className="h-4 w-4 text-purple-400/60" />
+              <span className="text-xs text-white/40">{trust.label}</span>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Bottom spacer and subtle footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.5 }}
+          className="mt-auto pt-16 pb-8 text-center"
+        >
+          <div className="h-px w-32 mx-auto bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6" />
+          <p className="text-[11px] text-white/20">
+            This quiz is for informational purposes only and is not medical advice.
+          </p>
+          <p className="mt-1 text-[11px] text-white/20">
+            © {new Date().getFullYear()} Claira. All rights reserved.
+          </p>
         </motion.div>
       </div>
-    </main>
+    </div>
   );
 }
