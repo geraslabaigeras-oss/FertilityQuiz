@@ -80,6 +80,7 @@ export default function Home() {
             <Button
               size="lg"
               className="group h-14 gap-2 rounded-full bg-rose-500 px-8 text-lg font-semibold text-white shadow-xl shadow-rose-500/30 hover:bg-rose-600 hover:shadow-2xl hover:shadow-rose-500/40"
+              onClick={() => window.location.href = '/quiz'}
             >
               Take the 2-Minute Assessment
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
